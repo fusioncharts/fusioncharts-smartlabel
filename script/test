@@ -1,0 +1,54 @@
+#!/bin/bash
+
+#-----------------------------------------------------------------------------------
+# THIS SCRIPT IS TO PERFORM THE TESTS ON THE BUILD OF SMARTLABEL
+# TEST INCLUDE MAKING LINITING, MAKING BUILD, COPYING THE FILES AND APPLYING KARMA
+#-----------------------------------------------------------------------------------
+
+set -e
+
+temp_folder="_build"
+
+# Run lint on the build
+echo -e "\033[33m";
+echo "  _    _     _   _           ";
+echo " | |  (_)_ _| |_(_)_ _  __ _ ";
+echo " | |__| | ' \  _| | ' \/ _\` |";
+echo " |____|_|_||_\__|_|_||_\__, |";
+echo "                       |___/ ";
+echo -e "\033[0m";
+eslint ./; true
+
+echo "SUCCESS"
+
+
+echo -e "\033[33m";
+echo "   ___                _ _ _           ";
+echo "  / __|___ _ __  _ __(_) (_)_ _  __ _ ";
+echo " | (__/ _ \ '  \| '_ \ | | | ' \/ _\` |";
+echo "  \___\___/_|_|_| .__/_|_|_|_||_\__, |";
+echo "                |_|             |___/ ";
+echo -e "\033[0m";
+# Make the build
+npm run build
+
+# Delete any temporary folder
+rm -rf $temp_folder
+
+# Create temp folder
+mkdir $temp_folder
+
+# Copy files
+cp example/dist/bundle.js $temp_folder/fusioncharts-smartlabel.js
+cp example/dist/common.js $temp_folder/common.js
+
+echo -e "\033[33m";
+echo " _     _      _  _____    _____  _____ ____  _____  _  _      _____"
+echo "/ \ /\/ \  /|/ \/__ __\  /__ __\/  __// ___\/__ __\/ \/ \  /|/  __/"
+echo "| | ||| |\ ||| |  / \      / \  |  \  |    \  / \  | || |\ ||| |  _"
+echo "| \_/|| | \||| |  | |      | |  |  /_ \___ |  | |  | || | \||| |_//"
+echo "\____/\_/  \|\_/  \_/      \_/  \____\\\\____/  \_/  \_/\_/  \|\____\\";
+
+echo -e "\033[0m";
+# Run karma
+./node_modules/.bin/karma start karma.conf.js

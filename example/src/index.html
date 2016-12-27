@@ -1,0 +1,82 @@
+<!doctype html>
+<head>
+	<title>SmartLabel</title>
+	<link rel="stylesheet" href="example.css">
+</head>
+<body>
+	<div class="jumbotron">
+        <div class="container">
+            <img src="images/react-fc-logo.png" class="logo">
+            <h1>FusionCharts-SmartLabel</h1>
+        </div>
+    </div>
+
+	<div class="container">
+		<h2><a href="https://github.com/fusioncharts/fusioncharts-smartlabel">View Documentation on GitHub</a></h2>
+		
+		<div class='fc-sl-demo-container'>
+			<p class="demo-heading">
+				What happens if a text is rendered in a <code>div</code> which has specific height and width.
+			</p>
+			<div id="html-auto-text-ops-demo-1" style="float: left; width: 30%"></div>
+			<div class="demo-desc">
+				<p> 
+					This example uses basic html elements to render the concept. 
+				</p>
+				<p> 
+					What happens when the text is made long so that it can't be contained in the <code>div</code> ? DOM automatically breaks it and position the remaining part in the following line.
+				</p>
+				<p>
+					Change the text in the textbox to see the effect. 
+				</p>
+			</div>
+		</div>
+
+		<div class='fc-sl-demo-container'>
+			<p class="demo-heading">
+				What happens if a text is rendered in a <code>svg</code> which has specific height and width.
+			</p>
+			<div id="svg-def-text-ops-demo-1" style="float: left; width: 30%"></div>
+			<div class="demo-desc">
+				<p> 
+					This example uses svg elements to render the concept. 
+				</p>
+				<p> 
+					What happens when the text is made long so that it can't be contained in the <code>svg bound box</code> ? Unlike the text contained in the div, <b>it does not get wrapped automatically</b>. This is the sole reason for label overlapping in a visualization library
+				</p>
+				<p>
+					Change the text in the textbox to see the effect. 
+				</p>
+			</div>
+		</div>
+
+		<div class='fc-sl-demo-container'>
+			<p class="demo-heading">
+				What happens if a text is rendered in a <code>svg</code> which has specific height and width <code>with smartlabel</code>.
+			</p>
+			<div id="svg-sl-def-text-ops-demo-1" style="float: left; width: 30%"></div>
+			<div class="demo-desc">
+				<p> 
+					This example uses svg elements to render the concept. 
+				</p>
+				<p> 
+					With <code>SmartLabel</code> a text cant be wrapped if a bound box is defined. More over if a bound box is completely exhausted the text can be truncated with or without ellipsis.
+				</p>
+				<p>
+					Change the text in the textbox to see the effect. 
+				</p>
+			</div>
+		</div>
+			
+		<div class="hint">
+			
+		</div>
+		
+		<div class="footer">
+			Copyright &copy; 2016 FusionCharts Technologies  &lt;support@fusioncharts.com&gt;.
+		</div>
+	</div>
+	<script src="common.js"></script>
+	<script src="bundle.js"></script>
+	<script src="example.js"></script>
+</body>

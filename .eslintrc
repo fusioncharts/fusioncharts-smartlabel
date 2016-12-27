@@ -1,0 +1,21 @@
+{
+	"parser": "babel-eslint",
+	"env": {
+		"browser": true,
+		"node": true
+	},
+	"plugins": [
+		"react"
+	],
+	"extends": "eslint:recommended",
+	"rules": {
+		"no-use-before-define": 1,
+		"camelcase": 1,
+		"new-cap": 1,
+		"one-var": 1,
+		"no-mixed-spaces-and-tabs": 0,
+		"no-cond-assign": 0,
+		"block-scoped-var": 0,
+		"semi": 1
+	}
+}
