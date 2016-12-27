@@ -9,7 +9,7 @@ Live demo: [fusioncharts.github.io/fusioncharts-smartlabel](http://fusioncharts.
 
 To build the examples locally, run:
 
-```
+```javascript
 npm install
 npm start
 ```
@@ -23,7 +23,7 @@ The easiest way to use fusioncharts-smartlabel is to install it from NPM and inc
 
 You can also use the standalone build by including `dist/fusioncharts-smartlabel.js`
 
-```
+```javascript
 npm install fusioncharts-smartlabel --save
 ```
 
@@ -42,12 +42,12 @@ SmartLabel provides out of the box feature to
 - Wraps a label in the bound box
 
 To require the SmartLabel
-```
-var SmartLabel = require('fusioncharts-smartlabel');
+```javascript
+var SmartLabelManager = require('fusioncharts-smartlabel');
 ```
 
 To Create a new instance
-```
+```javascript
 /*
  * Create new instance of SmartLabelManager.
  *
@@ -59,7 +59,7 @@ To Create a new instance
  * @param {String | Number} id - Id of the instance. If the same id is passed, it disposes the old instance and
  *                              save the new one;
  * @param {String | HTMLElement} container - The id or the instance of the container where the intermediate dom
- *                              elements are to be attached. If not passed, it appends in div
+ *                              elements are to be attached. If not passed, it appends in body.
  *
  * @param {Boolean} useEllipses - This decides if a ellipses to be appended if the text is truncated.
  * @param {Object} options - Control options
@@ -68,11 +68,11 @@ To Create a new instance
  *                          }
  * @constructor
  */
-var slManager =  SmartLabelManager(id, container, useEllipses, options) { }
+var slManager =  new SmartLabelManager(id, container, useEllipses, options)
 ```
 
 To apply style before calculating text metrics
-```
+```javascript
 /*
  * Sets the style based on which the text's metrics to be calculated.
  *
@@ -86,11 +86,11 @@ To apply style before calculating text metrics
  *
  * @return {SmartLabelManager} - Current instance of SmartLabelManager
  */
-slManager.setStyle (style) ;
+slManager.setStyle(style);
 ```
 
 Decide whether the text would have trailing ellipses if truncated
-```
+```javascript
 /*
  * Decides whether ellipses to be shown if the node is truncated
  *
@@ -98,11 +98,11 @@ Decide whether the text would have trailing ellipses if truncated
  *
  * @return {SmartLabelManager} - Current instance of SmartLabelManager
  */
-slManager.useEllipsesOnOverflow (useEllipses) ;
+slManager.useEllipsesOnOverflow(useEllipses);
 ```
 
 To get the text bounded by a bound box
-```
+```javascript
 /*
  * Get wrapped or truncated text if a bound box is defined around it. The result text would be separated by <br/>
  * if wrapped
@@ -125,11 +125,11 @@ To get the text bounded by a bound box
  *                      text : SMART TEXT
  *                  }
  */
-smartlabel = slManager.getSmartText (text, maxWidth, maxHeight, noWrap);
+smartlabel = slManager.getSmartText(text, maxWidth, maxHeight, noWrap);
 ```
 
 To get the size of a given text
-```
+```javascript
 /*
  * Get the height and width of a text.
  *
@@ -146,20 +146,17 @@ To get the size of a given text
  *                  }
  *                  If detailedCalculationFlag is set to false the returned object wont have the detailObj prop.
  */
-size = slManager.getOriSize (text, detailedCalculationFlag);
+size = slManager.getOriSize(text, detailedCalculationFlag);
 ```
 
 To dispose the components
-```
+```javascript
 /*
  * Dispose the container and object allocated by the smartlabel
  */
 slManager.dispose();
 ```
 
-### Notes
-
-__ADDITIONAL USAGE NOTES__
 
 
 ## Development (`src`, `lib` and the build process)
