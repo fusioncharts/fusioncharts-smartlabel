@@ -111,3 +111,7 @@ label {
 .demo-control span {
   padding: 0px 12px 0px 4px;
 }
+.head-of-headers {
+  color: #fff;
+  font-weight: 900;
+}
