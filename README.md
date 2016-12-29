@@ -28,16 +28,16 @@ npm install fusioncharts-smartlabel --save
 ```
 
 
-## Usage
+## API
 
 __Please see the concept above before proceeding__
 
 
-SmartLabel is immensely useful when text needs to be drawn in SVG or Canvas. Since SVG / Canvas does not manage text it is necessary to have pre procressing on the text before having it rendered.
+SmartLabel is immensely useful when text needs to be drawn in SVG or Canvas. Since SVG / Canvas does not manage text, it is necessary to have pre procressing on the text before getting it rendered.
 
-SmartLabel provides out of the box feature to
+SmartLabel provides out of the box features to
+- If a bound box is provided it wraps / truncates the text
 - Calculate the metrics (height and width) of text for any style
-- If a bound box is provided it truncates the text
 - Add ellipses if the text is truncated
 - Wraps a label in the bound box
 
@@ -110,7 +110,7 @@ To get the text bounded by a bound box
  * @param {String} text - the subject text
  * @param {Number} maxWidth - width in px of the the bound box
  * @param {Number} maxHeight - height in px of the the bound box
- * @param {Boolean} noWrap - whether the text to be wrapped. Default false.
+ * @param {Boolean} noWrap - whether the text not to be wrapped. Default false i.e. by default wrapping is enabled.
  *
  * @return {Object} - The metrics of the text bounded by the box
  *                  {
@@ -127,6 +127,22 @@ To get the text bounded by a bound box
  */
 smartlabel = slManager.getSmartText(text, maxWidth, maxHeight, noWrap);
 ```
+
+To get the lines for a truncated text
+```javascript
+/*
+ * getSmartText returns the text separated by <br/> whenever a break is necessary. This is to recgonize one
+ * generalized format independent of the implementation (html5 based solution, canvas based solution, svg based solution). 
+ * This method converts the output of getSmartText().text to array of lines if the text is wrapped. It sets a named property
+ * `lines` on the object passed as parameter.
+ *
+ * @param {Object} smartlabel - the object returned by getSmartText based on which line arr which to be formed.
+ *
+ * @return {Object} - The same object which was passed in the arguments. Also a named property `lines` is set.
+ */
+ smartlabel = slManager.getSmartText(text, maxWidth, maxHeight, noWrap);
+ generalizedSmartlabel = SmartLabelManager.textToLines(smartlabel);
+``` 
 
 To get the size of a given text
 ```javascript
@@ -157,6 +173,52 @@ To dispose the components
 slManager.dispose();
 ```
 
+## Usage
+
+A visualization library requires to restrict a text in a bound box to eliminate over lapping. The use case of the application of SmartLabel is huge, however we are taking a small subset of the universal set.
+
+For a typical column chart the labels in X axis conveys category information. It's important to display the labels properly in the visualization. But there are many parameters which affect the label placement. 
+If the chart is displayed in a space which is large enough to accommodate all the labels, then it is desired to place all the labels in one line
+![labels in one line](example/img/mode-orig.png "labels in one line")
+
+If the space is not enough to place all the labels side by side, it's required to wrap or truncate it.
+![labels wrapped](example/img/mode-1.png "labels wrapped")
+
+It's some time desired to skip the labels as well if the category is continuous (Like month of the years)
+![label skipped](example/img/mode-2.png "label skipped")
+
+All this can be eaisly done using SmartLabel.
+
+Following is the example of how a text is constrained by a bound box.
+```javascript
+// Set the vertical alignment on already created text node
+text
+	.attr('dy', ".35em");
+
+// Let smartlabelmanger know ellipses is required if the text is truncated. 
+// Get the text restricted by a bound box which has 100px width and 200px height
+smarttext = this.smartlabel
+	.useEllipsesOnOverflow(true)
+	.getSmartText('Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididun', 100, 200);
+
+// Get all the lines in an array. SmartLabel injects <br/> whereever a wrap is required, this conversion is necessary. 
+normalizedSL = SmartLabelManager.textToLines(smarttext);
+
+// Create tspan. For more than one line create more than one tspan
+tspan = text
+	.selectAll('tspan')
+	.data(smarttext.lines);
+
+// Perform data joining operations of d3 on the tspans
+tspan
+	.enter()
+		.append('tspan')
+	.merge(tspan)
+		.attr("dy", normalizedSL.oriTextHeight)
+		.attr("x", 0)
+		.text(d => d);
+
+```
 
 
 ## Development (`src`, `lib` and the build process)
