@@ -106,7 +106,9 @@ describe('SmartLabelManager', function () {
 					})
 					.getOriSize('a quick brown fox');
 
-			expect(size).to.deep.equal({ height: 24, width: 179});
+			expect(size.height).to.be.equal(24);
+			// Error value: +-2px
+			expect(size.width).to.be.within(178, 182);
 		});
 
 
@@ -159,9 +161,15 @@ describe('SmartLabelManager', function () {
 		function () {
 			var smarttext = sl
 					.useEllipsesOnOverflow(true)
-					.getSmartText('<span>a quick brown fox over the lazy dog</span>', 80, 100);
+					.getSmartText('<span>a quick brown fox over the lazy dog</span>', 80, 100),
+					possibleVals = [
+						'<span>a quick<br>brown<br>fox<br>over t</span>...',
+						'<span>a quick<br>brown<br>fox<br>over </span>...'
+					];
 
-			expect(smarttext.text).to.equal('<span>a quick<br>brown<br>fox<br>over </span>...');
+			// Based on pixel returned by the browsers the text might vary a bit. Assertion happens
+			// from a list of available values.
+			expect(possibleVals).to.include(smarttext.text);
 		});
 
 
