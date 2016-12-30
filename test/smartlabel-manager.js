@@ -178,8 +178,11 @@ describe('SmartLabelManager', function () {
 	it('truncates the ellipses as well when the space is not much',
 		function () {
 			var smarttext = sl
-					.setStyle({fontSize: '12px'})
-					.getSmartText('<p>AQuickBrownFoxOverTheLazyDog</span>', 14, 100);
+					.setStyle({
+						fontSize: '12px',
+						fontFamily: 'Verdana'
+					})
+					.getSmartText('<p>AQuickBrownFoxOverTheLazyDog</span>', 17, 100);
 
 			expect(smarttext.text).to.equal('<p>A<br>Q<br>ui<br>ck<br>Br<br>o</p>.');
 		});
@@ -188,7 +191,7 @@ describe('SmartLabelManager', function () {
 	it('truncates the ellipses as well when the space is not much not text is not wrapped',
 		function () {
 			var smarttext = sl
-					.getSmartText('<p>AQuickBrownFoxOverTheLazyDog</span>', 14, 100, true);
+					.getSmartText('<p>AQuickBrownFoxOverTheLazyDog</span>', 17, 100, true);
 
 			expect(smarttext.text).to.equal('<p>A</p>.');
 		});
@@ -208,7 +211,7 @@ describe('SmartLabelManager', function () {
 			var smarttext = SmartLabelManager.textToLines(sl
 					.getSmartText('AQuickBrownFoxOverTheLazyDog', 40, 1000));
 
-			expect(smarttext.lines.length).to.equal(5);
+			expect(smarttext.lines.length).to.equal(6);
 		});
 
 
