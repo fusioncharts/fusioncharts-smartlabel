@@ -1,6 +1,6 @@
-# SmartLabel
+# SmartLabel [![Build Status](https://travis-ci.org/fusioncharts/fusioncharts-smartlabel.svg?branch=develop)](https://travis-ci.org/fusioncharts/fusioncharts-smartlabel)
 
-SmartLabel is a component which can be used to measure and restrict text in svg / canvas where the layout engine does not automatically takes care of the text behaviours. 
+SmartLabel is a component which can be used to measure and restrict text in svg / canvas where the layout engine does not automatically takes care of the text behaviours.
 
 
 ## Concept
@@ -132,7 +132,7 @@ To get the lines for a truncated text
 ```javascript
 /*
  * getSmartText returns the text separated by <br/> whenever a break is necessary. This is to recgonize one
- * generalized format independent of the implementation (html5 based solution, canvas based solution, svg based solution). 
+ * generalized format independent of the implementation (html5 based solution, canvas based solution, svg based solution).
  * This method converts the output of getSmartText().text to array of lines if the text is wrapped. It sets a named property
  * `lines` on the object passed as parameter.
  *
@@ -142,7 +142,7 @@ To get the lines for a truncated text
  */
  smartlabel = slManager.getSmartText(text, maxWidth, maxHeight, noWrap);
  generalizedSmartlabel = SmartLabelManager.textToLines(smartlabel);
-``` 
+```
 
 To get the size of a given text
 ```javascript
@@ -177,7 +177,7 @@ slManager.dispose();
 
 A visualization library requires to restrict a text in a bound box to eliminate over lapping. The use case of the application of SmartLabel is huge, however we are taking a small subset of the universal set.
 
-For a typical column chart the labels in X axis conveys category information. It's important to display the labels properly in the visualization. But there are many parameters which affect the label placement. 
+For a typical column chart the labels in X axis conveys category information. It's important to display the labels properly in the visualization. But there are many parameters which affect the label placement.
 If the chart is displayed in a space which is large enough to accommodate all the labels, then it is desired to place all the labels in one line
 ![labels in one line](example/img/mode-orig.png "labels in one line")
 
@@ -195,13 +195,13 @@ Following is the example of how a text is constrained by a bound box.
 text
 	.attr('dy', ".35em");
 
-// Let smartlabelmanger know ellipses is required if the text is truncated. 
+// Let smartlabelmanger know ellipses is required if the text is truncated.
 // Get the text restricted by a bound box which has 100px width and 200px height
 smarttext = this.smartlabel
 	.useEllipsesOnOverflow(true)
 	.getSmartText('Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididun', 100, 200);
 
-// Get all the lines in an array. SmartLabel injects <br/> whereever a wrap is required, this conversion is necessary. 
+// Get all the lines in an array. SmartLabel injects <br/> whereever a wrap is required, this conversion is necessary.
 normalizedSL = SmartLabelManager.textToLines(smarttext);
 
 // Create tspan. For more than one line create more than one tspan
@@ -231,4 +231,3 @@ tspan
 __MIT__
 
 Copyright (c) 2016 FusionCharts Technologies  &lt;support@fusioncharts.com&gt;.
-
