@@ -4,7 +4,7 @@ var gulp = require('gulp'),
 	taskConfig = {
 
 	component: {
-		name: 'smartlabel-manager',
+		name: 'SmartlabelManager',
 		lib: 'lib'
 	},
 

@@ -1,388 +1,4 @@
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.smartlabelManager = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-'use strict';
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-var _lib = require('./lib');
-
-var _lib2 = _interopRequireDefault(_lib);
-
-var slLib = _lib2['default'].init(typeof window !== "undefined" ? window : undefined),
-    doc = slLib.win.document,
-    documentSupport = slLib.getDocumentSupport(),
-    SVG_BBOX_CORRECTION = documentSupport.isWebKit ? 0 : 4.5;
-
-function ContainerManager(parentContainer, isBrowserLess, maxContainers) {
-    var svg;
-
-    maxContainers = maxContainers > 5 ? maxContainers : 5;
-    maxContainers = maxContainers < 20 ? maxContainers : 20;
-
-    this.maxContainers = maxContainers;
-    this.first = null;
-    this.last = null;
-    this.containers = {};
-    this.length = 0;
-    this.rootNode = parentContainer;
-
-    if (isBrowserLess) {
-        svg = doc.createElementNS('http://www.w3.org/2000/svg', 'svg');
-        svg.setAttributeNS('http://www.w3.org/2000/svg', 'xlink', 'http://www.w3.org/1999/xlink');
-        svg.setAttributeNS('http://www.w3.org/2000/svg', 'height', '0');
-        svg.setAttributeNS('http://www.w3.org/2000/svg', 'width', '0');
-        this.svgRoot = svg;
-        this.rootNode.appendChild(svg);
-    }
-}
-
-ContainerManager.prototype.get = function (style) {
-    var diff,
-        key,
-        containerObj,
-        containers = this.containers,
-        len = this.length,
-        max = this.maxContainers,
-        keyStr = '';
-
-    for (key in slLib.supportedStyle) {
-        if (style[key] !== undefined) {
-            keyStr += slLib.supportedStyle[key] + ':' + style[key] + ';';
-        }
-    }
-
-    if (!keyStr) {
-        return false;
-    }
-
-    if (containerObj = containers[keyStr]) {
-        if (this.first !== containerObj) {
-            containerObj.prev && (containerObj.prev.next = containerObj.next);
-            containerObj.next && (containerObj.next.prev = containerObj.prev);
-            containerObj.next = this.first;
-            containerObj.next.prev = containerObj;
-            this.last === containerObj && (this.last = containerObj.prev);
-            containerObj.prev = null;
-            this.first = containerObj;
-        }
-    } else {
-        if (len >= max) {
-            diff = len - max + 1;
-            // +1 is to remove an extra entry to make space for the new container to be added.
-            while (diff--) {
-                this.removeContainer(this.last);
-            }
-        }
-        containerObj = this.addContainer(keyStr);
-    }
-
-    return containerObj;
-};
-
-ContainerManager.prototype.addContainer = function (keyStr) {
-    var node, container;
-
-    this.containers[keyStr] = container = {
-        next: null,
-        prev: null,
-        node: null,
-        ellipsesWidth: 0,
-        lineHeight: 0,
-        dotWidth: 0,
-        avgCharWidth: 4,
-        keyStr: keyStr,
-        charCache: {}
-    };
-
-    // Since the container objects are arranged from most recent to least recent order, we need to add the new
-    // object at the beginning of the list.
-    container.next = this.first;
-    container.next && (container.next.prev = container);
-    this.first = container;
-    if (!this.last) {
-        this.last = container;
-    }
-    this.length += 1;
-
-    node = container.node = doc.createElement('div');
-    this.rootNode.appendChild(node);
-
-    if (documentSupport.isIE && !documentSupport.hasSVG) {
-        node.style.setAttribute('cssText', keyStr);
-    } else {
-        node.setAttribute('style', keyStr);
-    }
-
-    node.setAttribute('aria-hidden', 'true');
-    node.setAttribute('role', 'presentation');
-    node.style.display = 'inline-block';
-
-    node.innerHTML = slLib.testStrAvg; // A test string.
-    container.lineHeight = node.offsetHeight;
-    container.avgCharWidth = node.offsetWidth / 3;
-
-    if (documentSupport.isBrowserLess) {
-        node = container.svgText = doc.createElementNS('http://www.w3.org/2000/svg', 'text');
-        node.setAttribute('style', keyStr);
-        this.svgRoot.appendChild(node);
-
-        node.textContent = slLib.testStrAvg; // A test string.
-        container.lineHeight = node.getBBox().height;
-        container.avgCharWidth = (node.getBBox().width - SVG_BBOX_CORRECTION) / 3;
-
-        node.textContent = '...';
-        container.ellipsesWidth = node.getBBox().width - SVG_BBOX_CORRECTION;
-        node.textContent = '.';
-        container.dotWidth = node.getBBox().width - SVG_BBOX_CORRECTION;
-    } else {
-        node.innerHTML = '...';
-        container.ellipsesWidth = node.offsetWidth;
-        node.innerHTML = '.';
-        container.dotWidth = node.offsetWidth;
-        node.innerHTML = '';
-    }
-
-    return container;
-};
-
-ContainerManager.prototype.removeContainer = function (cObj) {
-    var keyStr = cObj.keyStr;
-
-    if (!keyStr || !this.length || !cObj) {
-        return;
-    }
-    this.length -= 1;
-
-    cObj.prev && (cObj.prev.next = cObj.next);
-    cObj.next && (cObj.next.prev = cObj.prev);
-    this.first === cObj && (this.first = cObj.next);
-    this.last === cObj && (this.last = cObj.prev);
-
-    cObj.node.parentNode.removeChild(cObj.node);
-
-    delete this.containers[keyStr];
-};
-
-ContainerManager.prototype.dispose = function () {
-    var key,
-        containers = this.containers;
-
-    this.maxContainers = null;
-    for (key in containers) {
-        this.removeContainer(containers[key]);
-    }
-
-    this.rootNode.parentNode.removeChild(this.rootNode);
-
-    this.rootNode = null;
-    this.first = null;
-    this.last = null;
-};
-
-module.exports = ContainerManager;
-
-},{"./lib":2}],2:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, '__esModule', {
-	value: true
-});
-var lib = {
-	init: function init(win) {
-		var doc = win.document,
-		    nav = win.navigator,
-		    userAgent = nav.userAgent,
-		    DIV = 'DIV',
-		    ceil = Math.ceil,
-		    floor = Math.floor,
-		    containerInstanceCount = 0,
-		    clsNameSpace = 'fusioncharts-smartlabel-',
-		    containerClass = clsNameSpace + 'container',
-		    classNameWithTag = clsNameSpace + 'tag',
-		    classNameWithTagBR = clsNameSpace + 'br';
-
-		lib = {
-			win: win,
-
-			containerClass: containerClass,
-
-			classNameWithTag: classNameWithTag,
-
-			classNameWithTagBR: classNameWithTagBR,
-
-			maxDefaultCacheLimit: 500,
-
-			classNameReg: new RegExp('\b' + classNameWithTag + '\b'),
-
-			classNameBrReg: new RegExp('\b' + classNameWithTagBR + '\b'),
-
-			spanAdditionRegx: /(<[^<\>]+?\>)|(&(?:[a-z]+|#[0-9]+);|.)/ig,
-
-			spanAdditionReplacer: '$1<span class="' + classNameWithTag + '">$2</span>',
-
-			spanRemovalRegx: new RegExp('\\<span[^\\>]+?' + classNameWithTag + '[^\\>]{0,}\\>(.*?)\\<\\/span\\>', 'ig'),
-
-			xmlTagRegEx: new RegExp('<[^>][^<]*[^>]+>', 'i'),
-
-			ltgtRegex: /&lt;|&gt;/g,
-
-			brReplaceRegex: /<br\/>/ig,
-
-			testStrAvg: 'WgI',
-
-			// This style is applied over the parent smartlabel container. The container is kept hidden from the viewport
-			parentContainerStyle: {
-				position: 'absolute',
-				top: '-9999em',
-				whiteSpace: 'nowrap',
-				padding: '0px',
-				width: '1px',
-				height: '1px',
-				overflow: 'hidden'
-			},
-
-			// All the style which might affect the text metrics
-			supportedStyle: {
-				font: 'font',
-				fontFamily: 'font-family',
-				'font-family': 'font-family',
-				fontWeight: 'font-weight',
-				'font-weight': 'font-weight',
-				fontSize: 'font-size',
-				'font-size': 'font-size',
-				lineHeight: 'line-height',
-				'line-height': 'line-height',
-				fontStyle: 'font-style',
-				'font-style': 'font-style'
-			},
-
-			// Get the support list for html the document where the text calcution is to be done.
-			getDocumentSupport: function getDocumentSupport() {
-				var childRetriverFn, childRetriverString, noClassTesting;
-
-				if (doc.getElementsByClassName) {
-					childRetriverFn = 'getElementsByClassName';
-					childRetriverString = classNameWithTag;
-					noClassTesting = true;
-				} else {
-					childRetriverFn = 'getElementsByTagName';
-					childRetriverString = 'span';
-					noClassTesting = false;
-				}
-
-				return {
-					isIE: /msie/i.test(userAgent) && !win.opera,
-					hasSVG: Boolean(win.SVGAngle || doc.implementation.hasFeature('http://www.w3.org/TR/SVG11/feature#BasicStructure', '1.1')),
-					isHeadLess: new RegExp(' HtmlUnit').test(userAgent),
-					isWebKit: new RegExp(' AppleWebKit/').test(userAgent),
-					childRetriverFn: childRetriverFn,
-					childRetriverString: childRetriverString,
-					noClassTesting: noClassTesting
-				};
-			},
-
-			/*
-    * Create a html div element and attach it with a parent. All the subsequent operations are performed
-    * by upding this dom tree only.
-    *
-    * @param {HTMLElement} - The html element where the newly created div is to be attached. If not passed,
-    *                      the new div is appended on the body.
-    */
-			createContainer: function createContainer(containerParent) {
-				var body, container;
-
-				if (containerParent && (containerParent.offsetWidth || containerParent.offsetHeight)) {
-					if (containerParent.appendChild) {
-						containerParent.appendChild(container = doc.createElement(DIV));
-						container.className = containerClass;
-						container.setAttribute('aria-hidden', 'true');
-						container.setAttribute('role', 'presentation');
-						return container;
-					}
-				} else {
-					body = doc.getElementsByTagName('body')[0];
-
-					if (body && body.appendChild) {
-						container = doc.createElement(DIV);
-						container.className = containerClass;
-						container.setAttribute('aria-hidden', 'true');
-						container.setAttribute('role', 'presentation');
-						containerInstanceCount += 1;
-						body.appendChild(container);
-						return container;
-					}
-				}
-			},
-
-			// Finds a approximate position where the text is to be broken
-			getNearestBreakIndex: function getNearestBreakIndex(text, maxWidth, sl) {
-				if (!text || !text.length) {
-					return 0;
-				}
-
-				var difference,
-				    getWidth = sl._getWidthFn(),
-				    charLen = 0,
-				    increment = 0,
-				    oriWidth = getWidth(text),
-				    avgWidth = oriWidth / text.length;
-
-				difference = maxWidth;
-				charLen = ceil(maxWidth / avgWidth);
-
-				if (oriWidth < maxWidth) {
-					return text.length - 1;
-				}
-
-				if (charLen > text.length) {
-					difference = maxWidth - oriWidth;
-					charLen = text.length;
-				}
-
-				while (difference > 0) {
-					difference = maxWidth - getWidth(text.substr(0, charLen));
-					increment = floor(difference / avgWidth);
-					if (increment) {
-						charLen += increment;
-					} else {
-						return charLen;
-					}
-				}
-
-				while (difference < 0) {
-					difference = maxWidth - getWidth(text.substr(0, charLen));
-					increment = floor(difference / avgWidth);
-					if (increment) {
-						charLen += increment;
-					} else {
-						return charLen;
-					}
-				}
-				return charLen;
-			},
-
-			/*
-    * Determine lineheight of a text for a given style. It adds propery lineHeight to the style passed
-    *
-    * @param {Object} - The style based on which the text's metric needs to be calculated. The calculation happens
-    *                  based on fontSize property, if its not present a default font size is assumed.
-    *
-    * @return {Object} - The style that was passed with lineHeight as a named propery set on the object.
-    */
-			setLineHeight: function setLineHeight(styleObj) {
-				var fSize = styleObj.fontSize = styleObj.fontSize || '12px';
-				styleObj.lineHeight = styleObj.lineHeight || styleObj['line-height'] || parseInt(fSize, 10) * 1.2 + 'px';
-				return styleObj;
-			}
-		};
-
-		return lib;
-	}
-};
-
-exports['default'] = lib;
-module.exports = exports['default'];
-
-},{}],3:[function(require,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.SmartlabelManager = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -1200,5 +816,389 @@ SmartLabelManager.prototype.dispose = function () {
 exports['default'] = SmartLabelManager;
 module.exports = exports['default'];
 
-},{"./container-manager":1,"./lib":2}]},{},[3])(3)
+},{"./container-manager":2,"./lib":3}],2:[function(require,module,exports){
+'use strict';
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+var _lib = require('./lib');
+
+var _lib2 = _interopRequireDefault(_lib);
+
+var slLib = _lib2['default'].init(typeof window !== "undefined" ? window : undefined),
+    doc = slLib.win.document,
+    documentSupport = slLib.getDocumentSupport(),
+    SVG_BBOX_CORRECTION = documentSupport.isWebKit ? 0 : 4.5;
+
+function ContainerManager(parentContainer, isBrowserLess, maxContainers) {
+    var svg;
+
+    maxContainers = maxContainers > 5 ? maxContainers : 5;
+    maxContainers = maxContainers < 20 ? maxContainers : 20;
+
+    this.maxContainers = maxContainers;
+    this.first = null;
+    this.last = null;
+    this.containers = {};
+    this.length = 0;
+    this.rootNode = parentContainer;
+
+    if (isBrowserLess) {
+        svg = doc.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttributeNS('http://www.w3.org/2000/svg', 'xlink', 'http://www.w3.org/1999/xlink');
+        svg.setAttributeNS('http://www.w3.org/2000/svg', 'height', '0');
+        svg.setAttributeNS('http://www.w3.org/2000/svg', 'width', '0');
+        this.svgRoot = svg;
+        this.rootNode.appendChild(svg);
+    }
+}
+
+ContainerManager.prototype.get = function (style) {
+    var diff,
+        key,
+        containerObj,
+        containers = this.containers,
+        len = this.length,
+        max = this.maxContainers,
+        keyStr = '';
+
+    for (key in slLib.supportedStyle) {
+        if (style[key] !== undefined) {
+            keyStr += slLib.supportedStyle[key] + ':' + style[key] + ';';
+        }
+    }
+
+    if (!keyStr) {
+        return false;
+    }
+
+    if (containerObj = containers[keyStr]) {
+        if (this.first !== containerObj) {
+            containerObj.prev && (containerObj.prev.next = containerObj.next);
+            containerObj.next && (containerObj.next.prev = containerObj.prev);
+            containerObj.next = this.first;
+            containerObj.next.prev = containerObj;
+            this.last === containerObj && (this.last = containerObj.prev);
+            containerObj.prev = null;
+            this.first = containerObj;
+        }
+    } else {
+        if (len >= max) {
+            diff = len - max + 1;
+            // +1 is to remove an extra entry to make space for the new container to be added.
+            while (diff--) {
+                this.removeContainer(this.last);
+            }
+        }
+        containerObj = this.addContainer(keyStr);
+    }
+
+    return containerObj;
+};
+
+ContainerManager.prototype.addContainer = function (keyStr) {
+    var node, container;
+
+    this.containers[keyStr] = container = {
+        next: null,
+        prev: null,
+        node: null,
+        ellipsesWidth: 0,
+        lineHeight: 0,
+        dotWidth: 0,
+        avgCharWidth: 4,
+        keyStr: keyStr,
+        charCache: {}
+    };
+
+    // Since the container objects are arranged from most recent to least recent order, we need to add the new
+    // object at the beginning of the list.
+    container.next = this.first;
+    container.next && (container.next.prev = container);
+    this.first = container;
+    if (!this.last) {
+        this.last = container;
+    }
+    this.length += 1;
+
+    node = container.node = doc.createElement('div');
+    this.rootNode.appendChild(node);
+
+    if (documentSupport.isIE && !documentSupport.hasSVG) {
+        node.style.setAttribute('cssText', keyStr);
+    } else {
+        node.setAttribute('style', keyStr);
+    }
+
+    node.setAttribute('aria-hidden', 'true');
+    node.setAttribute('role', 'presentation');
+    node.style.display = 'inline-block';
+
+    node.innerHTML = slLib.testStrAvg; // A test string.
+    container.lineHeight = node.offsetHeight;
+    container.avgCharWidth = node.offsetWidth / 3;
+
+    if (documentSupport.isBrowserLess) {
+        node = container.svgText = doc.createElementNS('http://www.w3.org/2000/svg', 'text');
+        node.setAttribute('style', keyStr);
+        this.svgRoot.appendChild(node);
+
+        node.textContent = slLib.testStrAvg; // A test string.
+        container.lineHeight = node.getBBox().height;
+        container.avgCharWidth = (node.getBBox().width - SVG_BBOX_CORRECTION) / 3;
+
+        node.textContent = '...';
+        container.ellipsesWidth = node.getBBox().width - SVG_BBOX_CORRECTION;
+        node.textContent = '.';
+        container.dotWidth = node.getBBox().width - SVG_BBOX_CORRECTION;
+    } else {
+        node.innerHTML = '...';
+        container.ellipsesWidth = node.offsetWidth;
+        node.innerHTML = '.';
+        container.dotWidth = node.offsetWidth;
+        node.innerHTML = '';
+    }
+
+    return container;
+};
+
+ContainerManager.prototype.removeContainer = function (cObj) {
+    var keyStr = cObj.keyStr;
+
+    if (!keyStr || !this.length || !cObj) {
+        return;
+    }
+    this.length -= 1;
+
+    cObj.prev && (cObj.prev.next = cObj.next);
+    cObj.next && (cObj.next.prev = cObj.prev);
+    this.first === cObj && (this.first = cObj.next);
+    this.last === cObj && (this.last = cObj.prev);
+
+    cObj.node.parentNode.removeChild(cObj.node);
+
+    delete this.containers[keyStr];
+};
+
+ContainerManager.prototype.dispose = function () {
+    var key,
+        containers = this.containers;
+
+    this.maxContainers = null;
+    for (key in containers) {
+        this.removeContainer(containers[key]);
+    }
+
+    this.rootNode.parentNode.removeChild(this.rootNode);
+
+    this.rootNode = null;
+    this.first = null;
+    this.last = null;
+};
+
+module.exports = ContainerManager;
+
+},{"./lib":3}],3:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
+	value: true
+});
+var lib = {
+	init: function init(win) {
+		var doc = win.document,
+		    nav = win.navigator,
+		    userAgent = nav.userAgent,
+		    DIV = 'DIV',
+		    ceil = Math.ceil,
+		    floor = Math.floor,
+		    containerInstanceCount = 0,
+		    clsNameSpace = 'fusioncharts-smartlabel-',
+		    containerClass = clsNameSpace + 'container',
+		    classNameWithTag = clsNameSpace + 'tag',
+		    classNameWithTagBR = clsNameSpace + 'br';
+
+		lib = {
+			win: win,
+
+			containerClass: containerClass,
+
+			classNameWithTag: classNameWithTag,
+
+			classNameWithTagBR: classNameWithTagBR,
+
+			maxDefaultCacheLimit: 500,
+
+			classNameReg: new RegExp('\b' + classNameWithTag + '\b'),
+
+			classNameBrReg: new RegExp('\b' + classNameWithTagBR + '\b'),
+
+			spanAdditionRegx: /(<[^<\>]+?\>)|(&(?:[a-z]+|#[0-9]+);|.)/ig,
+
+			spanAdditionReplacer: '$1<span class="' + classNameWithTag + '">$2</span>',
+
+			spanRemovalRegx: new RegExp('\\<span[^\\>]+?' + classNameWithTag + '[^\\>]{0,}\\>(.*?)\\<\\/span\\>', 'ig'),
+
+			xmlTagRegEx: new RegExp('<[^>][^<]*[^>]+>', 'i'),
+
+			ltgtRegex: /&lt;|&gt;/g,
+
+			brReplaceRegex: /<br\/>/ig,
+
+			testStrAvg: 'WgI',
+
+			// This style is applied over the parent smartlabel container. The container is kept hidden from the viewport
+			parentContainerStyle: {
+				position: 'absolute',
+				top: '-9999em',
+				whiteSpace: 'nowrap',
+				padding: '0px',
+				width: '1px',
+				height: '1px',
+				overflow: 'hidden'
+			},
+
+			// All the style which might affect the text metrics
+			supportedStyle: {
+				font: 'font',
+				fontFamily: 'font-family',
+				'font-family': 'font-family',
+				fontWeight: 'font-weight',
+				'font-weight': 'font-weight',
+				fontSize: 'font-size',
+				'font-size': 'font-size',
+				lineHeight: 'line-height',
+				'line-height': 'line-height',
+				fontStyle: 'font-style',
+				'font-style': 'font-style'
+			},
+
+			// Get the support list for html the document where the text calcution is to be done.
+			getDocumentSupport: function getDocumentSupport() {
+				var childRetriverFn, childRetriverString, noClassTesting;
+
+				if (doc.getElementsByClassName) {
+					childRetriverFn = 'getElementsByClassName';
+					childRetriverString = classNameWithTag;
+					noClassTesting = true;
+				} else {
+					childRetriverFn = 'getElementsByTagName';
+					childRetriverString = 'span';
+					noClassTesting = false;
+				}
+
+				return {
+					isIE: /msie/i.test(userAgent) && !win.opera,
+					hasSVG: Boolean(win.SVGAngle || doc.implementation.hasFeature('http://www.w3.org/TR/SVG11/feature#BasicStructure', '1.1')),
+					isHeadLess: new RegExp(' HtmlUnit').test(userAgent),
+					isWebKit: new RegExp(' AppleWebKit/').test(userAgent),
+					childRetriverFn: childRetriverFn,
+					childRetriverString: childRetriverString,
+					noClassTesting: noClassTesting
+				};
+			},
+
+			/*
+    * Create a html div element and attach it with a parent. All the subsequent operations are performed
+    * by upding this dom tree only.
+    *
+    * @param {HTMLElement} - The html element where the newly created div is to be attached. If not passed,
+    *                      the new div is appended on the body.
+    */
+			createContainer: function createContainer(containerParent) {
+				var body, container;
+
+				if (containerParent && (containerParent.offsetWidth || containerParent.offsetHeight)) {
+					if (containerParent.appendChild) {
+						containerParent.appendChild(container = doc.createElement(DIV));
+						container.className = containerClass;
+						container.setAttribute('aria-hidden', 'true');
+						container.setAttribute('role', 'presentation');
+						return container;
+					}
+				} else {
+					body = doc.getElementsByTagName('body')[0];
+
+					if (body && body.appendChild) {
+						container = doc.createElement(DIV);
+						container.className = containerClass;
+						container.setAttribute('aria-hidden', 'true');
+						container.setAttribute('role', 'presentation');
+						containerInstanceCount += 1;
+						body.appendChild(container);
+						return container;
+					}
+				}
+			},
+
+			// Finds a approximate position where the text is to be broken
+			getNearestBreakIndex: function getNearestBreakIndex(text, maxWidth, sl) {
+				if (!text || !text.length) {
+					return 0;
+				}
+
+				var difference,
+				    getWidth = sl._getWidthFn(),
+				    charLen = 0,
+				    increment = 0,
+				    oriWidth = getWidth(text),
+				    avgWidth = oriWidth / text.length;
+
+				difference = maxWidth;
+				charLen = ceil(maxWidth / avgWidth);
+
+				if (oriWidth < maxWidth) {
+					return text.length - 1;
+				}
+
+				if (charLen > text.length) {
+					difference = maxWidth - oriWidth;
+					charLen = text.length;
+				}
+
+				while (difference > 0) {
+					difference = maxWidth - getWidth(text.substr(0, charLen));
+					increment = floor(difference / avgWidth);
+					if (increment) {
+						charLen += increment;
+					} else {
+						return charLen;
+					}
+				}
+
+				while (difference < 0) {
+					difference = maxWidth - getWidth(text.substr(0, charLen));
+					increment = floor(difference / avgWidth);
+					if (increment) {
+						charLen += increment;
+					} else {
+						return charLen;
+					}
+				}
+				return charLen;
+			},
+
+			/*
+    * Determine lineheight of a text for a given style. It adds propery lineHeight to the style passed
+    *
+    * @param {Object} - The style based on which the text's metric needs to be calculated. The calculation happens
+    *                  based on fontSize property, if its not present a default font size is assumed.
+    *
+    * @return {Object} - The style that was passed with lineHeight as a named propery set on the object.
+    */
+			setLineHeight: function setLineHeight(styleObj) {
+				var fSize = styleObj.fontSize = styleObj.fontSize || '12px';
+				styleObj.lineHeight = styleObj.lineHeight || styleObj['line-height'] || parseInt(fSize, 10) * 1.2 + 'px';
+				return styleObj;
+			}
+		};
+
+		return lib;
+	}
+};
+
+exports['default'] = lib;
+module.exports = exports['default'];
+
+},{}]},{},[1])(1)
 });
