@@ -1,20 +1,10 @@
-# FusionCharts XT Edge
-
-**Table of Contents**
-
-- [Repository Structure](#markdown-header-repository-structure)
-- [Branching and Tagging Policy](#markdown-header-branching-and-tagging-policy)
-- [Commit Guidelines](#markdown-header-commit-guidelines)
-- [Check for errors before committing](#markdown-header-check-for-errors-before-committing)
-- [Clean commit message](#markdown-header-clean-commit-message)
-- [Guidelines for sending a Pull Request](#markdown-header-guidelines-for-sending-a-pull-request)
-- [Ensuring your commits will not fail build](#markdown-header-ensuring-your-commits-will-not-fail-build)
+# FusionCharts SmartLabel
 
 ## Repository Structure
 
 Directory       | Summary
 ----------------|---------------------------------------------
-`dist`            | A UMD bundle is built and kept here, which can be included without the need for any build system
+`dist`            | A UMD bundle is built and kept here. This can be included without the need for any build system
 `example`         | Example usage of the component. Github page gets generated from here.
 `lib`             | Contains a transpiled CommonJS version (generated with Babel) of the code for use with node.js
 `script`          | CI script
@@ -31,15 +21,15 @@ This repository uses standard `git-flow` branch management policy/strategy. If y
 
 The following best practices, coupled with a pinch of common-sense will keep the repository clean and usable in future. The idea is that everything that goes into the repository is not for an individual, but someone else who will be directly or indirectly affected by it.
 
-## Check for errors before committing
+### Check for errors before committing
 
 Checking for errors should be done for each commit whether it is being pushed to remote or not.
 
 First, you don't want to submit any whitespace errors. Git provides an easy way to check for this — before you commit, run `git diff --check`, which identifies possible whitespace errors and lists them for you. If you run that command before committing, you can tell if you're about to commit whitespace issues that may annoy other developers.
 
-Secondly, you should ensure that your commit does not break builds. Run `npm run test` on the repository to execute all sanity and smoke tests. If any test fail, do not change the test to pass your commit. The tests were there with a purpose. Discuss within your team to ensure that the changes that you do to test specs are valid. If you are adding a new feature, accompanying them with new tests are a good practice.
+Secondly, you should ensure that your commit does not break builds. Run `npm run test` on the repository to execute all sanity and smoke tests. If any test fail, do not change the test to pass your commit. The tests were there with a purpose. Discuss within the thread to ensure that the changes that you do to test specs are valid. If you are adding a new feature, accompanying them with new tests are a good practice.
 
-## Clean commit message
+### Clean commit message
 
 *More detailed explanation include your motivation for the change and contrast its implementation with previous behavior — this is a good guideline to follow.*
 
