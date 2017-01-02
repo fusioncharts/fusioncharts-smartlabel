@@ -1,4 +1,4 @@
-# SmartLabel [![Build Status](https://travis-ci.org/fusioncharts/fusioncharts-smartlabel.svg?branch=develop)](https://travis-ci.org/fusioncharts/fusioncharts-smartlabel)
+# SmartLabel [![Build Status](https://travis-ci.org/fusioncharts/fusioncharts-smartlabel.svg?branch=develop)](https://travis-ci.org/fusioncharts/fusioncharts-smartlabel) [![Coverage Status](https://coveralls.io/repos/github/fusioncharts/fusioncharts-smartlabel/badge.svg?branch=develop)](https://coveralls.io/github/fusioncharts/fusioncharts-smartlabel?branch=develop)
 
 SmartLabel is a component which can be used to measure and restrict text in svg / canvas where the layout engine does not automatically takes care of the text behaviours.
 
