@@ -12,6 +12,7 @@ lib-cov
 coverage
 coverage.html
 .cover*
+.coveralls.yml
 
 # Dependency directory
 node_modules
