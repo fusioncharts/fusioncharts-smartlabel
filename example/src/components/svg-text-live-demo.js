@@ -5,9 +5,9 @@ var React = require('react'),
 class SVGTextLiveDemo extends React.Component {
 	constructor(props) {
 		super(props);
-		
+
 		this.state = {
-			text: 'a quick brown fox',
+			text: 'A quick brown fox. A quick brown fox. A quick brown fox. A quick brown fox.A quick brown fox. A quick brown fox. A quick brown fox.',
 			ellipsis: true,
 			wrap: true
 		};
