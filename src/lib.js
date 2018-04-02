@@ -35,6 +35,8 @@ var lib = {
 
 			xmlTagRegEx: new RegExp('<[^>][^<]*[^>]+>', 'i'),
 
+			brRegex: new RegExp('({br})|(<br>)|(<br\/>)|(<br\\>)', 'g'),
+
 			ltgtRegex: /&lt;|&gt;/g,
         	
         	brReplaceRegex: /<br\/>/ig,
@@ -190,7 +192,32 @@ var lib = {
 		        var fSize = styleObj.fontSize = (styleObj.fontSize || '12px');
 		        styleObj.lineHeight = styleObj.lineHeight || styleObj['line-height'] || ((parseInt(fSize, 10) * 1.2) + 'px');
 		        return styleObj;
-		    }
+			},
+			
+			_getDimentionUsingDiv: function (text) {
+				var container = this._container;
+			
+				container.innerHTML = text;
+				return {
+					width: container.offsetWidth,
+					height: container.offsetHeight
+				};
+			},
+
+			_getDimentionUsingCanvas: function (text) {
+				var sl = this,
+					ctx = sl.ctx,
+					container = sl._container,
+					style = sl.style,
+					height = style.lineHeight;
+
+				height.indexOf('px') > -1 && (height = height.substr(0, height.length - 2));
+				height = Number(height);
+				return {
+					width: ctx.measureText(text).width,
+					height: height
+				};
+			}
 		};
 
 		return lib;

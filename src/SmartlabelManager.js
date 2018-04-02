@@ -11,8 +11,39 @@ var slLib = lib.init(typeof window !== "undefined" ? window : this),
     documentSupport = slLib.getDocumentSupport(),
     SVG_BBOX_CORRECTION = documentSupport.isWebKit ? 0 : 4.5;
 
+
+/**
+ * Constructor
+ */
+function SmartLabelManager() {};
+
 /*
- * Create new instance of SmartLabelManager.
+ * getSmartText returns the text separated by <br/> whenever a break is necessary. This is to recgonize one
+ * generalized format independent of the implementation (canvas based solution, svg based solution). This method
+ * converts the output of getSmartText().text to array of lines if the text is wrapped. It sets a named property
+ * `lines` on the object passed as parameter.
+ *
+ * @param {Object} smartlabel - the object returned by getSmartText based on which line arr which to be formed.
+ *
+ * @return {Object} - The same object which was passed in the arguments. Also a named property `lines` is set.
+ */
+SmartLabelManager.textToLines = function (smartlabel) {
+    smartlabel = smartlabel || {};
+
+    if (!smartlabel.text) {
+        smartlabel.text = '';
+    } else if (typeof smartlabel.text !== 'string') {
+        smartlabel.text = smartlabel.text.toString();
+    }
+
+    smartlabel.lines = smartlabel.text.split(/\n|<br\s*?\/?>/ig);
+    return smartlabel;
+};
+
+// Saves all the instance created so far
+SmartLabelManager.store = {};
+
+/*
  *
  * SmartLabelManager controls the lifetime of the execution space where the text's metrics will be calculated.
  * This takes a string for a given style and returns the height, width.
@@ -29,15 +60,15 @@ var slLib = lib.init(typeof window !== "undefined" ? window : this),
  *                          {
  *                              maxCacheLimit: No of letter to be cached. Default: 500.
  *                          }
- * @constructor
  */
-function SmartLabelManager(id, container, useEllipses, options) {
+SmartLabelManager.prototype.init = function init (id, container, useEllipses, options) {
     var wrapper,
         prop,
         max,
         prevInstance,
         isBrowserLess = false,
-        store = SmartLabelManager.store;
+        store = SmartLabelManager.store,
+        canvas = window.document.createElement('canvas');
 
     if (typeof id === 'undefined' || typeof id === 'object') {
         return;
@@ -70,6 +101,10 @@ function SmartLabelManager(id, container, useEllipses, options) {
     this.id = id;
     this.parentContainer = wrapper;
 
+    // Get a context of canvas
+    this.ctx = canvas && canvas.getContext('2d');
+    this._getDimention = this.ctx ? slLib._getDimentionUsingCanvas : slLib._getDimentionUsingDiv;
+    
     this._containerManager = new ContainerManager(wrapper, isBrowserLess, 10);
     this._showNoEllipses = !useEllipses;
     this._init = true;
@@ -77,34 +112,7 @@ function SmartLabelManager(id, container, useEllipses, options) {
     this.options = options;
 
     this.setStyle();
-}
-
-/*
- * getSmartText returns the text separated by <br/> whenever a break is necessary. This is to recgonize one
- * generalized format independent of the implementation (canvas based solution, svg based solution). This method
- * converts the output of getSmartText().text to array of lines if the text is wrapped. It sets a named property
- * `lines` on the object passed as parameter.
- *
- * @param {Object} smartlabel - the object returned by getSmartText based on which line arr which to be formed.
- *
- * @return {Object} - The same object which was passed in the arguments. Also a named property `lines` is set.
- */
-SmartLabelManager.textToLines = function (smartlabel) {
-    smartlabel = smartlabel || {};
-
-    if (!smartlabel.text) {
-        smartlabel.text = '';
-    } else if (typeof smartlabel.text !== 'string') {
-        smartlabel.text = smartlabel.text.toString();
-    }
-
-    smartlabel.lines = smartlabel.text.split(/\n|<br\s*?\/?>/ig);
-    return smartlabel;
 };
-
-// Saves all the instance created so far
-SmartLabelManager.store = {};
-
 // Calculates space taken by a character with an approximation value which is calculated by repeating the
 // character by string length times.
 SmartLabelManager.prototype._calCharDimWithCache = function (text, calculateDifference, length) {
@@ -121,24 +129,27 @@ SmartLabelManager.prototype._calCharDimWithCache = function (text, calculateDiff
         maxAdvancedCacheLimit = this.options.maxCacheLimit,
         container = this._container,
         style = this.style || {},
-        cache = this._advancedCache || (this._advancedCache = {}),
+        cache,
+        advancedCacheKey,
+        cacheName,
+        cacheInitName;
+
+        cache = this._advancedCache = this._advancedCache || (this._advancedCache = {}),
         advancedCacheKey = this._advancedCacheKey || (this._advancedCacheKey = []),
         cacheName = text + (style.fontSize || BLANK) + (style.fontFamily || BLANK) + (style.fontWeight || BLANK) +
            (style.fontStyle || BLANK),
-       cacheInitName = text + 'init' + (style.fontSize || BLANK) + (style.fontFamily || BLANK) +
+        cacheInitName = text + 'init' + (style.fontSize || BLANK) + (style.fontFamily || BLANK) +
            (style.fontWeight || BLANK) + (style.fontStyle || BLANK);
 
-    htmlSplCharSpace[text] && (text = htmlSplCharSpace[text]);
+    !this.ctx && htmlSplCharSpace[text] && (text = htmlSplCharSpace[text]);
 
     if (!calculateDifference) {
         asymmetricDifference = 0;
     } else {
         if ((asymmetricDifference = cache[cacheInitName]) === undefined) {
-            container.innerHTML = text.repeat ? text.repeat(length) : Array(length + 1).join(text); // jshint ignore:line
-            tw = container.offsetWidth;
+            tw = this._getDimention(text.repeat ? text.repeat(length) : Array(length + 1).join(text)).width;
 
-            container.innerHTML = text;
-            twi = container.offsetWidth;
+            twi = this._getDimention(text).width;
 
             asymmetricDifference = cache[cacheInitName] = (tw - length * twi) / (length + 1);
             advancedCacheKey.push(cacheInitName);
@@ -156,12 +167,8 @@ SmartLabelManager.prototype._calCharDimWithCache = function (text, calculateDiff
         };
     }
 
-    container.innerHTML = text;
-
-    size = {
-        height: container.offsetHeight,
-        width: container.offsetWidth + asymmetricDifference
-    };
+    size = this._getDimention(text);
+    size.width += asymmetricDifference;
 
     cache[cacheName] = size.width + ',' + size.height;
     advancedCacheKey.push(cacheName);
@@ -174,7 +181,8 @@ SmartLabelManager.prototype._calCharDimWithCache = function (text, calculateDiff
 
 // Provide function to calculate the height and width based on the environment and available support from dom.
 SmartLabelManager.prototype._getWidthFn = function () {
-    var contObj = this._containerObj,
+    var sl = this,
+        contObj = this._containerObj,
         container = this._container,
         svgText = contObj.svgText;
 
@@ -194,12 +202,33 @@ SmartLabelManager.prototype._getWidthFn = function () {
         };
     } else {
         return function (str) {
-            container.innerHTML = str;
-            return container.offsetWidth;
+            return sl._getDimention(str).width;
         };
     }
 };
 
+/**
+ * Sets font property of canvas context based on which the width of text is calculated.
+ * 
+ * @param {any} style style configuration which affects the text size
+ *                      {
+ *                          fontSize / 'font-size' : MUST BE FOLLOWED BY PX (10px, 11px)
+ *                          fontFamily / 'font-family'
+ *                          fontWeight / 'font-weight'
+ *                          fontStyle / 'font-style'
+ *                      }
+ */
+SmartLabelManager.prototype.setStyleOfCanvas = function (style = {}) {
+    var sl = this,
+        fontStyle = style.fontStyle || style['font-style'] || 'normal',
+        fontVariant = style.fontVariant || style['font-variant'] || 'normal',
+        fontWeight = style.fontWeight || style['font-weight'] || 'normal',
+        fontSize = style.fontSize || style['font-size'] || '12px',
+        fontFamily = style.fontFamily || style['font-family'] || 'Verdana,sans';
+
+    fontSize += fontSize.indexOf('px') === -1 ? 'px' : '';
+    sl.ctx.font = fontStyle + ' ' + fontVariant + ' ' + fontWeight + ' ' + fontSize + ' ' + fontFamily;
+}; 
 /*
  * Sets the style based on which the text's metrics to be calculated.
  *
@@ -230,9 +259,9 @@ SmartLabelManager.prototype.setStyle = function (style) {
 
     slLib.setLineHeight(style);
     this.style = style;
-
     this._containerObj = sCont = this._containerManager.get(style);
 
+    this.ctx && this.setStyleOfCanvas(style);
     if (this._containerObj) {
         this._container = sCont.node;
         this._context = sCont.context;
@@ -242,7 +271,6 @@ SmartLabelManager.prototype.setStyle = function (style) {
     } else {
         this._styleNotSet = true;
     }
-
     return this;
 };
 
@@ -487,7 +515,7 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
                 for (; i < len; i += 1) {
                     tempChar = tempArr[i] = oriTextArr[i];
                     if (tempChar === ' ' && !context) {
-                        tempChar = '&nbsp;';
+                        tempChar = this.ctx ? ' ' : '&nbsp;';
                     }
 
                     if (this._cache[tempChar]) {
