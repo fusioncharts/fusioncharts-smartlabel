@@ -193,10 +193,30 @@ var lib = {
 		        styleObj.lineHeight = styleObj.lineHeight || styleObj['line-height'] || ((parseInt(fSize, 10) * 1.2) + 'px');
 		        return styleObj;
 			},
-			
+
+			/**
+			 * Returns the clean height by removing 'px' if present.
+			 */
+			_getCleanHeight: function (height) {
+				// Remove 'px' from  height and convert it to number
+				height = height.replace(/px/g, '');
+				return Number(height);
+			},
+			/**
+			 * Div is used for calculation of text dimention in all non-canvas browsers. It sets the text as
+			 * innerHTML of the div and uses it's offsetWidth and offsetHeight as width and height respectively
+			 *
+			 * @param {string} text - text, whose measurements are to be calculated
+			 * 
+			 * @returns {Object} - dimension of text
+			 */
 			_getDimentionUsingDiv: function (text) {
 				var container = this._container;
 			
+				// In case text is an array, convert it to string.
+				if (text instanceof Array) {
+					text = text.join('');
+				}
 				container.innerHTML = text;
 				return {
 					width: container.offsetWidth,
@@ -204,19 +224,130 @@ var lib = {
 				};
 			},
 
+			/**
+			 * Returns the height and width of a text using the canvas.measureText API.
+			 * Used for calculating width in browsers supporting html canvas.
+			 * In case canvas is not present, <div> is used for calculation as a fallback solution
+			 * 
+			 * @param {any} text -  text. Can be array or string.
+			 * 
+			 * @return {Object} - width and height.
+			 */
 			_getDimentionUsingCanvas: function (text) {
 				var sl = this,
 					ctx = sl.ctx,
 					container = sl._container,
 					style = sl.style,
-					height = style.lineHeight;
+					height = lib._getCleanHeight(style.lineHeight);
 
-				height.indexOf('px') > -1 && (height = height.substr(0, height.length - 2));
-				height = Number(height);
+				// In case text is string, remove <br /> from it.
+				if (!(text instanceof Array)) {
+					text = text.replace(/<br \/>/g, '');
+				} else {
+					// Else if it an array, convert it to string and remove <br />
+					text = text.join('');
+					text = text.replace(/<br \/>/g, '');
+				}
+
 				return {
 					width: ctx.measureText(text).width,
 					height: height
 				};
+			},
+
+			/**
+			 * Checks if text contains any <br /> tag. If yes, it returns all the indexes of it.
+			 * Else, it returns undefined.
+			 * 
+			 * @param {string} text -  text which is to be examined for <br /> tag
+			 * 
+			 * @returns {any} - Array containing index of occurance of <br />, else undefined.
+			 */
+			_hasOnlyBRTag: function (text = '') {
+				var i,
+					len = text.length,
+					index = [];
+
+				for (i = 0; i <= len - 6; i++) {
+					if (text[i] === '<') {
+						if (text.substr(i, 6) === '<br />') {
+							index.push(i);
+						} else {
+							return;
+						}
+					}
+				}
+
+				if (index.length === 0) {
+					return;
+				} else return index;
+			},
+
+			/**
+			 * For a text containing <br /> it returns the height and width of the text
+			 * 
+			 */
+			_getDimentionOfMultiLineText: function (text = '', sl) {
+				var i,
+					len,
+					textAr = lib._getTextArray(text),
+					width = 0,
+					maxWidth = 0,
+					getWidth = sl._getWidthFn(),
+					height = lib._getCleanHeight(sl.style.lineHeight),
+					textHeight = height;
+
+				for (i = 0, len = textAr.length; i < len; i++) {
+					if (textAr[i] === '<br />') {
+						// In case of <br />, reset width to 0, since it will be new line now.
+						// Also, increase the line height.
+						maxWidth = Math.max(maxWidth, width);
+						width = 0;
+						textHeight += height;
+					} else {
+						// Else, calculate the width of the line.
+						width += getWidth(textAr[i]);
+					}
+				}
+
+				return {
+					height: textheight,
+					width: maxWidth
+				};
+			},
+
+			/**
+			 * Splits text into array and returns. Special functionality is, it treats <br /> as a single character
+			 */
+			_getTextArray: function (text = '') {
+				var i,
+					j,
+					len,
+					tempLen,
+					brText,
+					tempText,
+					finaltextAr = [];
+
+				// Split using <br />
+				brText = text.split('<br />');
+				len = brText.length;
+
+				for (i = 0; i < len; i++) {
+					tempText = brText[i].split('');
+					tempLen = tempText.length;
+
+					// for each array retrieved by spliting using <br /> push elements to finalArray.
+					for (j = 0; j < tempLen; j++) {
+						finaltextAr.push(tempText[j]);
+					}
+
+					// Check if tempText is not the last text. IF true, add <br /> to the final Array.
+					if (i !== len - 1) {
+						finaltextAr.push('<br />');
+					}
+				}
+
+				return finaltextAr;
 			}
 		};
 
