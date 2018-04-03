@@ -1,6 +1,7 @@
 .publish/*
 dist/*
-example/dist/*
+build/*
+example/*
 lib/*
 node_modules/*
 _build/*

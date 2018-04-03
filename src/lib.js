@@ -6,7 +6,6 @@ var lib = {
         	DIV = 'DIV',
         	ceil = Math.ceil,
         	floor = Math.floor,
-        	containerInstanceCount = 0,
         	clsNameSpace = 'fusioncharts-smartlabel-',
         	containerClass = clsNameSpace + 'container',
         	classNameWithTag = clsNameSpace + 'tag',
@@ -126,7 +125,6 @@ var lib = {
 			            container.className = containerClass;
 			            container.setAttribute('aria-hidden', 'true');
 			            container.setAttribute('role', 'presentation');
-			            containerInstanceCount += 1;
 			            body.appendChild(container);
 			            return container;
 			        }
@@ -236,7 +234,6 @@ var lib = {
 			_getDimentionUsingCanvas: function (text) {
 				var sl = this,
 					ctx = sl.ctx,
-					container = sl._container,
 					style = sl.style,
 					height = lib._getCleanHeight(style.lineHeight);
 
@@ -311,7 +308,7 @@ var lib = {
 				}
 
 				return {
-					height: textheight,
+					height: textHeight,
 					width: maxWidth
 				};
 			},

@@ -173,4 +173,5 @@ ContainerManager.prototype.dispose = function () {
     this.last = null;
 };
 
+export default ContainerManager;
 module.exports = ContainerManager;

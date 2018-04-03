@@ -4,9 +4,6 @@
 		"browser": true,
 		"node": true
 	},
-	"plugins": [
-		"react"
-	],
 	"extends": "eslint:recommended",
 	"rules": {
 		"no-use-before-define": 1,
@@ -16,6 +13,8 @@
 		"no-mixed-spaces-and-tabs": 0,
 		"no-cond-assign": 0,
 		"block-scoped-var": 0,
+		"no-useless-escape": 0,
+		"no-extra-semi": 0,
 		"semi": 1
 	}
 }

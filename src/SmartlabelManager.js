@@ -127,7 +127,6 @@ SmartLabelManager.prototype._calCharDimWithCache = function (text, calculateDiff
         cachedStyle,
         asymmetricDifference,
         maxAdvancedCacheLimit = this.options.maxCacheLimit,
-        container = this._container,
         style = this.style || {},
         cache,
         advancedCacheKey,
@@ -183,7 +182,6 @@ SmartLabelManager.prototype._calCharDimWithCache = function (text, calculateDiff
 SmartLabelManager.prototype._getWidthFn = function () {
     var sl = this,
         contObj = this._containerObj,
-        container = this._container,
         svgText = contObj.svgText;
 
     if (svgText) {
@@ -357,7 +355,6 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
         strHeight = 0,
         oriTextArr = [],
         i = 0,
-        j,
         ellipsesStr = (this._showNoEllipses ? '' : '...'),
         lineHeight = this._lineHeight,
         context = this._context,
