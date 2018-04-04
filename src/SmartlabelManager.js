@@ -102,7 +102,7 @@ SmartLabelManager.prototype.init = function init (id, container, useEllipses, op
     this.parentContainer = wrapper;
 
     // Get a context of canvas
-    this.ctx = canvas && canvas.getContext('2d');
+    this.ctx = canvas && canvas.getContext && canvas.getContext('2d');
     this._getDimention = this.ctx ? slLib._getDimentionUsingCanvas : slLib._getDimentionUsingDiv;
     
     this._containerManager = new ContainerManager(wrapper, isBrowserLess, 10);
