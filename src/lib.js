@@ -34,7 +34,7 @@ var lib = {
 
 			xmlTagRegEx: new RegExp('<[^>][^<]*[^>]+>', 'i'),
 
-			brRegex: new RegExp('({br})|(<br>)|(<br\/>)|(<br\\>)', 'g'),
+			brRegex: new RegExp('({br[ ]*})|(<br[ ]*>)|(<br[ ]*\/>)|(<br\\>)', 'g'),
 
 			ltgtRegex: /&lt;|&gt;/g,
         	
@@ -256,18 +256,29 @@ var lib = {
 			 * Checks if text contains any <br /> tag. If yes, it returns all the indexes of it.
 			 * Else, it returns undefined.
 			 * 
-			 * @param {string} text -  text which is to be examined for <br /> tag
+			 * @param {string} input -  text which is to be examined for <br /> tag
 			 * 
 			 * @returns {any} - Array containing index of occurance of <br />, else undefined.
 			 */
-			_hasOnlyBRTag: function (text = '') {
+			_hasOnlyBRTag: function (input = '') {
 				var i,
-					len = text.length,
+					len,
+					text = input.replace(lib.brRegex, '<br />'),
+					brTagArray = text.split('<br />'),
+					brTagArrayLen = brTagArray.length,
 					index = [];
 
-				for (i = 0; i <= len - 6; i++) {
+				// Check for other tags
+				for (i = 0; i < brTagArrayLen; i++) {
+					if(lib.xmlTagRegEx.test(brTagArray[i])) {
+						return;
+					}
+				}
+
+				// Finds position of all br tag
+				for (i = 0, len = text.length; i < len; i++) {
 					if (text[i] === '<') {
-						if (text.substr(i, 6) === '<br />') {
+						if (text.substr(i, Math.min(6, len - i)) === '<br />') {
 							index.push(i);
 						} else {
 							return;
@@ -292,7 +303,9 @@ var lib = {
 					maxWidth = 0,
 					getWidth = sl._getWidthFn(),
 					height = lib._getCleanHeight(sl.style.lineHeight),
-					textHeight = height;
+					textHeight = height,
+					textWidth,
+					indiSizeStore = {};
 
 				for (i = 0, len = textAr.length; i < len; i++) {
 					if (textAr[i] === '<br />') {
@@ -303,13 +316,16 @@ var lib = {
 						textHeight += height;
 					} else {
 						// Else, calculate the width of the line.
-						width += getWidth(textAr[i]);
+						textWidth = getWidth(textAr[i]);
+						width += textWidth;
+						indiSizeStore[textAr[i]] = textWidth;
 					}
 				}
 
 				return {
 					height: textHeight,
-					width: maxWidth
+					width: maxWidth,
+					detailObj: indiSizeStore
 				};
 			},
 

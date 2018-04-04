@@ -413,6 +413,7 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
                 smartLabel.oriTextWidth = oriWidth = getOriSizeImproveObj.width;
                 smartLabel.oriTextHeight = oriHeight = getOriSizeImproveObj.height;
             } else if (hasOnlyBrTag) {
+                text = text.replace(slLib.brRegex, '<br />');
                 dimentionObj = slLib._getDimentionOfMultiLineText(text, this);
                 smartLabel.oriTextWidth = oriWidth = dimentionObj.width;
                 smartLabel.oriTextHeight = oriHeight = dimentionObj.height;
@@ -543,18 +544,9 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
                     if (tempArr[i] === '<br />') {
                         strHeight += this._lineHeight;
                         lastIndexBroken = i;
-                        if (strHeight > maxHeight) {
-                            smartLabel.text = fastTrim(trimStr) + ellipsesStr;
-                            smartLabel.tooltext = smartLabel.oriText;
-                            // The max width among all the lines will be the width of the string.
-                            smartLabel.width = maxWidth;
-                            smartLabel.height = (strHeight - this._lineHeight);
-                            return smartLabel;
-                        } else {
-                            maxStrWidth = max(maxStrWidth, strWidth);
-                            strWidth = 0;
-                            trimStr = null;
-                        }
+                        maxStrWidth = max(maxStrWidth, strWidth);
+                        strWidth = 0;
+                        trimStr = null;
                         continue;
                     }
 
@@ -853,10 +845,27 @@ SmartLabelManager.prototype.getOriSize = function (text, detailedCalculationFlag
         l,
         cumulativeSize = 0,
         height = 0,
-        indiSizeStore = { };
+        container = this._container,
+        indiSizeStore = { },
+        hasHTMLTag = slLib.xmlTagRegEx.test(text);
 
+    // If text has br tag, return the width and height with proper calculations
+    if (slLib._hasOnlyBRTag(text)) {
+        return slLib._getDimentionOfMultiLineText(text, this);
+    }
+
+    // When text is normal text
     if (!detailedCalculationFlag) {
         return this._calCharDimWithCache(text);
+    }
+
+    // text contains html tags other than br
+    if (hasHTMLTag) {
+        container.innerHTML = text;
+        return {
+            width: container.offsetWidth,
+            height: container.offsetHeight
+        };
     }
 
     // Calculate the width of every letter with an approximation
