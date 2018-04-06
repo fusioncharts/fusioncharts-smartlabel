@@ -8,7 +8,8 @@
     "Akash Goswami",
     "Rohit Kumar",
     "Shamasis Bhattacharya",
-    "Subhash Haldar"
+    "Subhash Haldar",
+    "Priyanjit Dey"
   ],
   "license": "MIT",
   "homepage": "https://github.com/fusioncharts/fusioncharts-smartlabel",
@@ -22,7 +23,6 @@
   "devDependencies": {
     "babel-eslint": "^8.2.2",
     "chai": "^3.5.0",
-    "clean-webpack-plugin": "^0.1.19",
     "coveralls": "^2.11.15",
     "d3": "^4.4.0",
     "eslint": "^4.19.1",
@@ -36,8 +36,7 @@
     "mocha": "^3.2.0",
     "react": "^0.14.0",
     "react-component-gulp-tasks": "^0.7.6",
-    "react-dom": "^0.14.0",
-    "webpack": "^4.2.0"
+    "react-dom": "^0.14.0"
   },
   "browserify-shim": {
     "react": "global:React"

@@ -12,10 +12,62 @@ var slLib = lib.init(typeof window !== "undefined" ? window : this),
     SVG_BBOX_CORRECTION = documentSupport.isWebKit ? 0 : 4.5;
 
 
-/**
- * Constructor
+/*
+ * @constrcutor
+ * SmartLabelManager controls the lifetime of the execution space where the text's metrics will be calculated.
+ * This takes a string for a given style and returns the height, width.
+ * If a bound box is defined it wraps the text and returns the wrapped height and width.
+ * It allows to append ellipsis at the end if the text is truncated.
+ *
+ * @param {String | HTMLElement} container - The id or the instance of the container where the intermediate dom
+ *                              elements are to be attached. If not passed, it appends in div
+ *
+ * @param {Boolean} useEllipses - This decides if a ellipses to be appended if the text is truncated.
+ * @param {Object} options - Control options
+ *                          {
+ *                              maxCacheLimit: No of letter to be cached. Default: 500.
+ *                          }
  */
-function SmartLabelManager() {};
+function SmartLabelManager(container, useEllipses, options) {
+    var wrapper,
+        prop,
+        max,
+        isBrowserLess = false,
+        canvas = window.document.createElement('canvas');
+
+    options = options || {};
+    options.maxCacheLimit = isFinite(max = options.maxCacheLimit) ? max : slLib.maxDefaultCacheLimit;
+
+    if (typeof container === 'string') {
+        container = doc.getElementById(container);
+    }
+
+    wrapper = slLib.createContainer(container);
+    wrapper.innerHTML = slLib.testStrAvg;
+
+    if (documentSupport.isHeadLess || (!documentSupport.isIE && !wrapper.offsetHeight && !wrapper.offsetWidth)) {
+        isBrowserLess = true;
+    }
+
+    wrapper.innerHTML = '';
+    for (prop in slLib.parentContainerStyle) {
+        wrapper.style[prop] = slLib.parentContainerStyle[prop];
+    }
+
+    this.parentContainer = wrapper;
+
+    // Get a context of canvas
+    this.ctx = canvas && canvas.getContext && canvas.getContext('2d');
+    this._getDimention = this.ctx ? slLib._getDimentionUsingCanvas : slLib._getDimentionUsingDiv;
+    
+    this._containerManager = new ContainerManager(wrapper, isBrowserLess, 10);
+    this._showNoEllipses = !useEllipses;
+    this._init = true;
+    this.style = {};
+    this.options = options;
+
+    this.setStyle();
+}
 
 /*
  * getSmartText returns the text separated by <br/> whenever a break is necessary. This is to recgonize one
@@ -40,79 +92,7 @@ SmartLabelManager.textToLines = function (smartlabel) {
     return smartlabel;
 };
 
-// Saves all the instance created so far
-SmartLabelManager.store = {};
 
-/*
- *
- * SmartLabelManager controls the lifetime of the execution space where the text's metrics will be calculated.
- * This takes a string for a given style and returns the height, width.
- * If a bound box is defined it wraps the text and returns the wrapped height and width.
- * It allows to append ellipsis at the end if the text is truncated.
- *
- * @param {String | Number} id - Id of the instance. If the same id is passed, it disposes the old instance and
- *                              save the new one;
- * @param {String | HTMLElement} container - The id or the instance of the container where the intermediate dom
- *                              elements are to be attached. If not passed, it appends in div
- *
- * @param {Boolean} useEllipses - This decides if a ellipses to be appended if the text is truncated.
- * @param {Object} options - Control options
- *                          {
- *                              maxCacheLimit: No of letter to be cached. Default: 500.
- *                          }
- */
-SmartLabelManager.prototype.init = function init (id, container, useEllipses, options) {
-    var wrapper,
-        prop,
-        max,
-        prevInstance,
-        isBrowserLess = false,
-        store = SmartLabelManager.store,
-        canvas = window.document.createElement('canvas');
-
-    if (typeof id === 'undefined' || typeof id === 'object') {
-        return;
-    }
-
-    if (prevInstance = store[id]) {
-        prevInstance.dispose();
-    }
-
-    store[id] = this;
-    options = options || {};
-    options.maxCacheLimit = isFinite(max = options.maxCacheLimit) ? max : slLib.maxDefaultCacheLimit;
-
-    if (typeof container === 'string') {
-        container = doc.getElementById(container);
-    }
-
-    wrapper = slLib.createContainer(container);
-    wrapper.innerHTML = slLib.testStrAvg;
-
-    if (documentSupport.isHeadLess || (!documentSupport.isIE && !wrapper.offsetHeight && !wrapper.offsetWidth)) {
-        isBrowserLess = true;
-    }
-
-    wrapper.innerHTML = '';
-    for (prop in slLib.parentContainerStyle) {
-        wrapper.style[prop] = slLib.parentContainerStyle[prop];
-    }
-
-    this.id = id;
-    this.parentContainer = wrapper;
-
-    // Get a context of canvas
-    this.ctx = canvas && canvas.getContext && canvas.getContext('2d');
-    this._getDimention = this.ctx ? slLib._getDimentionUsingCanvas : slLib._getDimentionUsingDiv;
-    
-    this._containerManager = new ContainerManager(wrapper, isBrowserLess, 10);
-    this._showNoEllipses = !useEllipses;
-    this._init = true;
-    this.style = {};
-    this.options = options;
-
-    this.setStyle();
-};
 // Calculates space taken by a character with an approximation value which is calculated by repeating the
 // character by string length times.
 SmartLabelManager.prototype._calCharDimWithCache = function (text, calculateDifference, length) {
@@ -181,7 +161,7 @@ SmartLabelManager.prototype._calCharDimWithCache = function (text, calculateDiff
 // Provide function to calculate the height and width based on the environment and available support from dom.
 SmartLabelManager.prototype._getWidthFn = function () {
     var sl = this,
-        contObj = this._containerObj,
+        contObj = sl._containerObj,
         svgText = contObj.svgText;
 
     if (svgText) {
