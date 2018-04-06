@@ -95,7 +95,7 @@ SmartLabelManager.textToLines = function (smartlabel) {
 
 // Calculates space taken by a character with an approximation value which is calculated by repeating the
 // character by string length times.
-SmartLabelManager.prototype._calCharDimWithCache = function (text, calculateDifference, length) {
+SmartLabelManager.prototype._calCharDimWithCache = function (text = '', calculateDifference, length) {
     if (!this._init) {
         return false;
     }
@@ -813,7 +813,7 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
  *                  }
  *                  If detailedCalculationFlag is set to false the returned object wont have the detailObj prop.
  */
-SmartLabelManager.prototype.getOriSize = function (text, detailedCalculationFlag) {
+SmartLabelManager.prototype.getOriSize = function (text = '', detailedCalculationFlag) {
     if (!this._init) {
         return false;
     }

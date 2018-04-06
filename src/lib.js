@@ -208,7 +208,7 @@ var lib = {
 			 * 
 			 * @returns {Object} - dimension of text
 			 */
-			_getDimentionUsingDiv: function (text) {
+			_getDimentionUsingDiv: function (text = '') {
 				var container = this._container;
 			
 				// In case text is an array, convert it to string.
@@ -231,7 +231,7 @@ var lib = {
 			 * 
 			 * @return {Object} - width and height.
 			 */
-			_getDimentionUsingCanvas: function (text) {
+			_getDimentionUsingCanvas: function (text = '') {
 				var sl = this,
 					ctx = sl.ctx,
 					style = sl.style,
