@@ -361,6 +361,22 @@ var lib = {
 				}
 
 				return finaltextAr;
+			},
+
+			/**
+			 * Returns the last occurance of item in a array
+			 */
+			_findLastIndex: function (array = [], item) {
+				var i,
+					len = array.length;
+
+				for (i = len - 1; i >= 0; i--) {
+					if (array[i] === item) {
+						return i;
+					}
+				}
+
+				return -1;
 			}
 		};
 
