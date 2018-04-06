@@ -813,7 +813,7 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
  *                  }
  *                  If detailedCalculationFlag is set to false the returned object wont have the detailObj prop.
  */
-SmartLabelManager.prototype.getOriSize = function (text = '', detailedCalculationFlag) {
+SmartLabelManager.prototype.getOriSize = function (text = '', detailedCalculationFlag = true) {
     if (!this._init) {
         return false;
     }
