@@ -550,8 +550,8 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
                         }
                         if (strWidth > maxWidth) {
                             /** @todo use regular expressions for better performance. */
-                            lastSpace = slLib._findLastIndex(oriTextArr.slice(0, tempArr.length));
-                            lastDash = slLib._findLastIndex(oriTextArr.slice(0, tempArr.length));
+                            lastSpace = slLib._findLastIndex(oriTextArr.slice(0, tempArr.length), ' ');
+                            lastDash = slLib._findLastIndex(oriTextArr.slice(0, tempArr.length), '-');
                             if (lastSpace > lastIndexBroken) {
                                 strWidth = getWidth(tempArr.slice(lastIndexBroken + 1, lastSpace).join(''));
                                 tempArr.splice(lastSpace, 1, '<br/>');

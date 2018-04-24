@@ -37,6 +37,8 @@ var lib = {
 			brRegex: new RegExp('({br[ ]*})|(<br[ ]*>)|(<br[ ]*\/>)|(<br\\>)', 'g'),
 
 			ltgtRegex: /&lt;|&gt;/g,
+
+			htmlSpecialEntityRegex: /&amp;|&quot;|&lt;|&gt;/g,
         	
         	brReplaceRegex: /<br\/>/ig,
 
@@ -322,6 +324,7 @@ var lib = {
 					}
 				}
 
+				maxWidth = Math.max(maxWidth, width);
 				return {
 					height: textHeight,
 					width: maxWidth,
