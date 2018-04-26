@@ -71,9 +71,57 @@ ContainerManager.prototype.get = function (style) {
     return containerObj;
 };
 
+ContainerManager.prototype._makeDivNode = function (container, keyStr) {
+    var node;
+
+    if (!container.node) {
+        container.node = doc.createElement('div');
+        this.rootNode.appendChild(container.node);
+    }
+    node = container.node;
+
+    if (documentSupport.isIE && !documentSupport.hasSVG) {
+        node.style.setAttribute('cssText', keyStr);
+    }
+    else {
+        node.setAttribute('style', keyStr);
+    }
+
+    node.setAttribute('aria-hidden', 'true');
+    node.setAttribute('role', 'presentation');
+    node.style.display = 'inline-block';
+
+    node.innerHTML = slLib.testStrAvg; // A test string.
+    container.lineHeight = node.offsetHeight;
+    container.avgCharWidth = (node.offsetWidth / 3);
+
+    if (documentSupport.isBrowserLess) {
+        if (!container.svgText) {
+            container.svgText = doc.createElementNS('http://www.w3.org/2000/svg', 'text');
+            this.svgRoot.appendChild(node);
+        }
+        node = container.svgText;
+        node.setAttribute('style', keyStr);
+        
+
+        node.textContent = slLib.testStrAvg; // A test string.
+        container.lineHeight = node.getBBox().height;
+        container.avgCharWidth = ((node.getBBox().width - SVG_BBOX_CORRECTION) / 3);
+
+        node.textContent = '...';
+        container.ellipsesWidth = node.getBBox().width - SVG_BBOX_CORRECTION;
+        node.textContent = '.';
+        container.dotWidth = node.getBBox().width - SVG_BBOX_CORRECTION;
+    } else {
+        node.innerHTML = '...';
+        container.ellipsesWidth = node.offsetWidth;
+        node.innerHTML = '.';
+        container.dotWidth = node.offsetWidth;
+        node.innerHTML = '';
+    }
+}
 ContainerManager.prototype.addContainer = function (keyStr) {
-    var node,
-        container;
+    var container;
 
     this.containers[keyStr] = container = {
         next: null,
@@ -97,45 +145,6 @@ ContainerManager.prototype.addContainer = function (keyStr) {
     }
     this.length += 1;
 
-    node = container.node = doc.createElement('div');
-    this.rootNode.appendChild(node);
-
-    if (documentSupport.isIE && !documentSupport.hasSVG) {
-        node.style.setAttribute('cssText', keyStr);
-    }
-    else {
-        node.setAttribute('style', keyStr);
-    }
-
-    node.setAttribute('aria-hidden', 'true');
-    node.setAttribute('role', 'presentation');
-    node.style.display = 'inline-block';
-
-    node.innerHTML = slLib.testStrAvg; // A test string.
-    container.lineHeight = node.offsetHeight;
-    container.avgCharWidth = (node.offsetWidth / 3);
-
-    if (documentSupport.isBrowserLess) {
-        node = container.svgText = doc.createElementNS('http://www.w3.org/2000/svg', 'text');
-        node.setAttribute('style', keyStr);
-        this.svgRoot.appendChild(node);
-
-        node.textContent = slLib.testStrAvg; // A test string.
-        container.lineHeight = node.getBBox().height;
-        container.avgCharWidth = ((node.getBBox().width - SVG_BBOX_CORRECTION) / 3);
-
-        node.textContent = '...';
-        container.ellipsesWidth = node.getBBox().width - SVG_BBOX_CORRECTION;
-        node.textContent = '.';
-        container.dotWidth = node.getBBox().width - SVG_BBOX_CORRECTION;
-    } else {
-        node.innerHTML = '...';
-        container.ellipsesWidth = node.offsetWidth;
-        node.innerHTML = '.';
-        container.dotWidth = node.offsetWidth;
-        node.innerHTML = '';
-    }
-
     return container;
 };
 
@@ -152,7 +161,7 @@ ContainerManager.prototype.removeContainer = function (cObj) {
     (this.first === cObj) && (this.first = cObj.next);
     (this.last === cObj) && (this.last = cObj.prev);
 
-    cObj.node.parentNode.removeChild(cObj.node);
+    cObj.node && cObj.node.parentNode.removeChild(cObj.node);
     
     delete this.containers[keyStr];
 };

@@ -20,7 +20,7 @@ var lib = {
 
 			classNameWithTagBR: classNameWithTagBR,
 			
-			maxDefaultCacheLimit: 500,
+			maxDefaultCacheLimit: 1000,
 
 			classNameReg: new RegExp('\b' + classNameWithTag + '\b'),
 			
@@ -34,7 +34,7 @@ var lib = {
 
 			xmlTagRegEx: new RegExp('<[^>][^<]*[^>]+>', 'i'),
 
-			brRegex: new RegExp('({br[ ]*})|(<br[ ]*>)|(<br[ ]*\/>)|(<br\\>)', 'g'),
+			brRegex: new RegExp('({br[ ]*})|(<br[ ]*>)|(<br[ ]*\/>)|(<BR[ ]*\/>)|(<br\\>)', 'g'),
 
 			ltgtRegex: /&lt;|&gt;/g,
 
@@ -273,7 +273,7 @@ var lib = {
 				// Check for other tags
 				for (i = 0; i < brTagArrayLen; i++) {
 					if(lib.xmlTagRegEx.test(brTagArray[i])) {
-						return;
+						return false;
 					}
 				}
 
@@ -283,13 +283,13 @@ var lib = {
 						if (text.substr(i, Math.min(6, len - i)) === '<br />') {
 							index.push(i);
 						} else {
-							return;
+							return false;
 						}
 					}
 				}
 
 				if (index.length === 0) {
-					return;
+					return false;
 				} else return index;
 			},
 
