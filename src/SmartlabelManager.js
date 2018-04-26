@@ -404,7 +404,7 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
     // In some browsers, offsetheight of a single-line text is getting little (1 px) heigher value of the
     // lineheight. As a result, smartLabel is unable to return single-line text.
     // To fix this, increase the maxHeight a little amount. Hence maxHeight =  lineHeight * 1.2
-    if (maxHeight === lineHeight) {
+    if (maxHeight === lineHeight || (lineHeight - maxHeight) < 1) {
         maxHeight *= 1.2;
     }
 
