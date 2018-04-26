@@ -189,7 +189,7 @@ var lib = {
 			 * @return {Object} - The style that was passed with lineHeight as a named propery set on the object.
 			 */
 			setLineHeight: function  (styleObj) {
-		        var fSize = styleObj.fontSize = (styleObj.fontSize || '12px');
+		        var fSize = styleObj.fontSize = (styleObj.fontSize || styleObj['font-size'] || '12px');
 		        styleObj.lineHeight = styleObj.lineHeight || styleObj['line-height'] || ((parseInt(fSize, 10) * 1.2) + 'px');
 		        return styleObj;
 			},
