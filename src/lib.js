@@ -277,20 +277,7 @@ var lib = {
 					}
 				}
 
-				// Finds position of all br tag
-				for (i = 0, len = text.length; i < len; i++) {
-					if (text[i] === '<') {
-						if (text.substr(i, Math.min(6, len - i)) === '<br />') {
-							index.push(i);
-						} else {
-							return false;
-						}
-					}
-				}
-
-				if (index.length === 0) {
-					return false;
-				} else return index;
+				return (brTagArrayLen > 1);
 			},
 
 			/**

@@ -400,6 +400,7 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
     ellipsesWidth = sCont.ellipsesWidth;
     dotWidth = sCont.dotWidth;
 
+    toolText = text.replace(slLib.spanAdditionRegx, '$2');
     getWidth = this._getWidthFn();
 
     // In some browsers, offsetheight of a single-line text is getting little (1 px) heigher value of the
@@ -569,6 +570,7 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
                             // Else return by truncating the text and attaching ellipses.
                             trimStr = tempArr.slice(0, -1).join('');
                             smartLabel.text = fastTrim(trimStr) + ellipsesStr;
+                            smartLabel.tooltext = toolText;
                             smartLabel.width = maxStrWidth;
                             smartLabel.height = strHeight;
                             return smartLabel

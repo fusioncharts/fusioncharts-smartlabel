@@ -71,8 +71,9 @@ ContainerManager.prototype.get = function (style) {
     return containerObj;
 };
 
-ContainerManager.prototype._makeDivNode = function (container, keyStr) {
-    var node;
+ContainerManager.prototype._makeDivNode = function (container) {
+    var node,
+        keyStr = container.keyStr;
 
     if (!container.node) {
         container.node = doc.createElement('div');
