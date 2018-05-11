@@ -210,8 +210,8 @@ var lib = {
 			 * 
 			 * @returns {Object} - dimension of text
 			 */
-			_getDimentionUsingDiv: function (text = '') {
-				var container = this._container;
+			_getDimentionUsingDiv: function (text = '', sl) {
+				var container = sl._container;
 			
 				// In case text is an array, convert it to string.
 				if (text instanceof Array) {
@@ -233,9 +233,8 @@ var lib = {
 			 * 
 			 * @return {Object} - width and height.
 			 */
-			_getDimentionUsingCanvas: function (text = '') {
-				var sl = this,
-					ctx = sl.ctx,
+			_getDimentionUsingCanvas: function (text = '', sl) {
+				var ctx = sl.ctx,
 					style = sl.style,
 					height = lib._getCleanHeight(style.lineHeight);
 

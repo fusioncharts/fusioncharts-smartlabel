@@ -58,7 +58,6 @@ function SmartLabelManager(container, useEllipses, options) {
 
     // Get a context of canvas
     this.ctx = canvas && canvas.getContext && canvas.getContext('2d');
-    this._getDimention = this.ctx ? slLib._getDimentionUsingCanvas : slLib._getDimentionUsingDiv;
     
     this._containerManager = new ContainerManager(wrapper, isBrowserLess, 10);
     this._showNoEllipses = !useEllipses;
@@ -159,6 +158,13 @@ SmartLabelManager.prototype._calCharDimWithCache = function (text = '', calculat
     return size;
 };
 
+SmartLabelManager.prototype._getDimention = function (text) {
+    if (this.requireDiv) {
+        return slLib._getDimentionUsingDiv(text, this);
+    } else {
+        return slLib._getDimentionUsingCanvas(text, this);
+    }
+}
 // Provide function to calculate the height and width based on the environment and available support from dom.
 SmartLabelManager.prototype._getWidthFn = function () {
     var sl = this,
@@ -181,7 +187,11 @@ SmartLabelManager.prototype._getWidthFn = function () {
         };
     } else {
         return function (str) {
-            return sl._getDimention(str).width;
+            if (sl.requireDiv) {
+                return slLib._getDimentionUsingDiv(str, sl).width;
+            } else {
+                return slLib._getDimentionUsingCanvas(str, sl).width;
+            }
         };
     }
 };
@@ -249,8 +259,8 @@ SmartLabelManager.prototype._setStyleOfDiv = function () {
     }
 }
 
-SmartLabelManager.prototype._updateStyle = function (requireDiv) {
-    return (requireDiv || !this.ctx) ? this._setStyleOfDiv() : this._setStyleOfCanvas();
+SmartLabelManager.prototype._updateStyle = function () {
+    return (this.requireDiv || !this.ctx) ? this._setStyleOfDiv() : this._setStyleOfCanvas();
 }
 /*
  * Sets the style based on which the text's metrics to be calculated.
@@ -391,7 +401,8 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
     hasHTMLTag = slLib.xmlTagRegEx.test(text);
     hasOnlyBrTag = slLib._hasOnlyBRTag(text);
 
-    this._updateStyle(hasHTMLTag && !hasOnlyBrTag);
+    this.requireDiv = (hasHTMLTag && !hasOnlyBrTag);
+    this._updateStyle();
 
     lineHeight = this._lineHeight;
     context = this._context;
@@ -881,12 +892,13 @@ SmartLabelManager.prototype.getOriSize = function (text = '', detailedCalculatio
     typeof hasHTMLTag === 'undefined' && (hasHTMLTag = slLib.xmlTagRegEx.test(text));
     typeof hasOnlyBrTag === 'undefined' && (hasOnlyBrTag = slLib._hasOnlyBRTag(text));
     
+    this.requireDiv = (hasHTMLTag && !hasOnlyBrTag);
     if (!config.cleanText) {
         text = text.replace(slLib.ltgtRegex, function (match) {
             return match === '&lt;' ? '<' : '>';
         });
     }
-    this._updateStyle(hasHTMLTag && !hasOnlyBrTag);
+    this._updateStyle();
     container = this._container;
     // If text has br tag, return the width and height with proper calculations
     if (hasOnlyBrTag) {
