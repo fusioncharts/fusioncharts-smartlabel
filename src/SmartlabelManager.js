@@ -570,20 +570,21 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
                     // In case of <br>, reset width to 0 and increase line height
                     if (tempArr[i] === '<br />') {
                         maxStrWidth = max(maxStrWidth, strWidth);
-                        if (strHeight + this._lineHeight <= maxHeight) {
+                        strHeight += this._lineHeight;
+                        if (strHeight <= maxHeight) {
                             // If the totalHeight is less than allowed height, continue.
                             strHeight += this._lineHeight;
                             lastIndexBroken = i;
                             strWidth = 0;
                             trimStr = null;
                             continue;
-                        } else {
+                        } else if (strHeight > maxHeight) {
                             // Else return by truncating the text and attaching ellipses.
                             trimStr = tempArr.slice(0, -1).join('');
                             smartLabel.text = fastTrim(trimStr) + ellipsesStr;
                             smartLabel.tooltext = toolText;
                             smartLabel.width = maxStrWidth;
-                            smartLabel.height = strHeight;
+                            smartLabel.height = strHeight - this._lineHeight;
                             return smartLabel
                         }
                     }
