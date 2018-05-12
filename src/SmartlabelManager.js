@@ -159,7 +159,7 @@ SmartLabelManager.prototype._calCharDimWithCache = function (text = '', calculat
 };
 
 SmartLabelManager.prototype._getDimention = function (text) {
-    if (this.requireDiv) {
+    if (this.requireDiv || !this.ctx) {
         return slLib._getDimentionUsingDiv(text, this);
     } else {
         return slLib._getDimentionUsingCanvas(text, this);
@@ -187,7 +187,7 @@ SmartLabelManager.prototype._getWidthFn = function () {
         };
     } else {
         return function (str) {
-            if (sl.requireDiv) {
+            if (sl.requireDiv || !sl.ctx) {
                 return slLib._getDimentionUsingDiv(str, sl).width;
             } else {
                 return slLib._getDimentionUsingCanvas(str, sl).width;
@@ -608,6 +608,10 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
                             trimStr = tempArr.slice(0, -1).join('');
                         }
                         if (strWidth > maxWidth) {
+                            // do not perform any line break operation if next character is a break tag
+                            if (oriTextArr[i + 1] === '<br />') {
+                                continue;
+                            }
                             /** @todo use regular expressions for better performance. */
                             lastSpace = slLib._findLastIndex(oriTextArr.slice(0, tempArr.length), ' ');
                             lastDash = slLib._findLastIndex(oriTextArr.slice(0, tempArr.length), '-');
