@@ -686,7 +686,7 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
             text = text.replace(slLib.spanAdditionRegx, slLib.spanAdditionReplacer);
             text = text.replace(
                 /(<br\s*\/*\>)/g,
-                '<span class="' + [slLib.classNameWithTag, ' ', slLib.classNameWithTagBR].join('') + '">$1</span>'
+                '<span class="' + 'fusioncharts-span' + '">$1</span>'
             );
 
             container.innerHTML = text;

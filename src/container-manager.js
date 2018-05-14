@@ -77,6 +77,7 @@ ContainerManager.prototype._makeDivNode = function (container) {
 
     if (!container.node) {
         container.node = doc.createElement('div');
+        container.node.className = 'fusioncharts-div';
         this.rootNode.appendChild(container.node);
     }
     node = container.node;
