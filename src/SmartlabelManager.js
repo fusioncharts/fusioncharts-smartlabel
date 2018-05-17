@@ -417,7 +417,7 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
     // In some browsers, offsetheight of a single-line text is getting little (1 px) heigher value of the
     // lineheight. As a result, smartLabel is unable to return single-line text.
     // To fix this, increase the maxHeight a little amount. Hence maxHeight =  lineHeight * 1.2
-    if (maxHeight === lineHeight || (lineHeight - maxHeight) < 1) {
+    if (maxHeight === lineHeight) {
         maxHeight *= 1.2;
     }
 
@@ -497,7 +497,7 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
             else if (ellipsesStr) {
                 maxWidthWithEll = maxWidth - (2 * dotWidth);
                 if (maxWidthWithEll > minWidth) {
-                    ellipsesStr = '..';
+                    ellipsesStr = '...';
                 } else {
                     maxWidthWithEll = maxWidth - dotWidth;
                     if (maxWidthWithEll > minWidth) {
@@ -573,7 +573,6 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
                         strHeight += this._lineHeight;
                         if (strHeight <= maxHeight) {
                             // If the totalHeight is less than allowed height, continue.
-                            strHeight += this._lineHeight;
                             lastIndexBroken = i;
                             strWidth = 0;
                             trimStr = null;
