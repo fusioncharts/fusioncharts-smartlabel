@@ -497,7 +497,7 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
             else if (ellipsesStr) {
                 maxWidthWithEll = maxWidth - (2 * dotWidth);
                 if (maxWidthWithEll > minWidth) {
-                    ellipsesStr = '...';
+                    ellipsesStr = '..';
                 } else {
                     maxWidthWithEll = maxWidth - dotWidth;
                     if (maxWidthWithEll > minWidth) {
@@ -685,7 +685,7 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
             text = text.replace(slLib.spanAdditionRegx, slLib.spanAdditionReplacer);
             text = text.replace(
                 /(<br\s*\/*\>)/g,
-                '<span class="' + [className, ' ', className2].join('') + '">$1</span>'
+                '<span class="' + [slLib.classNameWithTag, ' ', slLib.classNameWithTagBR].join('') + '">$1</span>'
             );
 
             container.innerHTML = text;
