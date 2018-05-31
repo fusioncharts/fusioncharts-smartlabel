@@ -22,9 +22,15 @@ var lib = {
 			
 			maxDefaultCacheLimit: 1000,
 
-			classNameReg: new RegExp('\b' + classNameWithTag + '\b'),
+			// The regex we get from new RegExp does not perform the work as intended
+
+			// classNameReg: new RegExp('\b' + classNameWithTag + '\b'),
 			
-			classNameBrReg: new RegExp('\b' + classNameWithTagBR + '\b'),
+			// classNameBrReg: new RegExp('\b' + classNameWithTagBR + '\b'),
+
+			classNameReg: /\bfusioncharts-smartlabel-tag\b/,
+
+			classNameBrReg: /\bfusioncharts-smartlabel-br\b/,
 
 			spanAdditionRegx: /(<[^<\>]+?\>)|(&(?:[a-z]+|#[0-9]+);|.)/ig,
 			
