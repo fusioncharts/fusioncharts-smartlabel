@@ -283,9 +283,10 @@ var lib = {
 			 * For a text containing <br /> it returns the height and width of the text
 			 * 
 			 */
-			_getDimentionOfMultiLineText: function (text = '', sl) {
+			_getDimentionOfMultiLineText: function (rawText = '', sl) {
 				var i,
 					len,
+					text = rawText.replace(lib.brRegex, '<br />'),
 					textAr = lib._getTextArray(text),
 					width = 0,
 					maxWidth = 0,
