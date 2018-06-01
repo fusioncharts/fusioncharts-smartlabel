@@ -417,7 +417,14 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
     // In some browsers, offsetheight of a single-line text is getting little (1 px) heigher value of the
     // lineheight. As a result, smartLabel is unable to return single-line text.
     // To fix this, increase the maxHeight a little amount. Hence maxHeight =  lineHeight * 1.2
-    if (maxHeight === lineHeight) {
+    /**
+     * For canvas lineHeight is directly used. In some cases, lineHeight can be 0.x pixels greater than
+     * maxHeight. Previously, div was used to calculate lineHeight and it used to return a rounded number.
+     * 
+     * Adding a buffer of 1px, maxheight will be increased by a factor of 1.2 only when 
+     * 0 <= (lineHeight - maxHeight) <= 1
+     */
+    if ((lineHeight - maxHeight <= 1) && (lineHeight - maxHeight >= 0)) {
         maxHeight *= 1.2;
     }
 
