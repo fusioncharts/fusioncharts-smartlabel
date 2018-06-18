@@ -1,6 +1,6 @@
 import lib from './lib';
 
-var slLib = lib.init(typeof window !== "undefined" ? window : this),
+var slLib = lib.init(window),
     doc = slLib.win.document,
     documentSupport = slLib.getDocumentSupport(),
     SVG_BBOX_CORRECTION = documentSupport.isWebKit ? 0 : 4.5;

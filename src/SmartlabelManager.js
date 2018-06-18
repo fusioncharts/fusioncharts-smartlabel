@@ -1,7 +1,7 @@
 import lib from './lib';
 import ContainerManager from './container-manager';
 
-var slLib = lib.init(typeof window !== "undefined" ? window : this),
+var slLib = lib.init(window),
     doc = slLib.win.document,
     M = slLib.win.Math,
     max = M.max,
