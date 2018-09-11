@@ -723,9 +723,10 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
 
             i = 0;
             len = characterArr.length;
-            minWidth = characterArr[0].elem.offsetWidth;
+            // if character array is not generated
+            minWidth = len && characterArr[0].elem.offsetWidth;
 
-            if (minWidth > maxWidth) {
+            if (minWidth > maxWidth || !len) {
                 smartLabel.text = '';
                 smartLabel.width = smartLabel.oriTextWidth = smartLabel.height = smartLabel.oriTextHeight = 0;
 
