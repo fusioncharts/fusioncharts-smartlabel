@@ -277,6 +277,9 @@ SmartLabelManager.prototype._updateStyle = function () {
  */
 SmartLabelManager.prototype.setStyle = function (style) {
     if (style) {
+        // If fontsize is present and provided as number, change it to string
+        typeof style.fontSize !== 'undefined' && (style.fontSize += '');
+        typeof style['font-size'] !== 'undefined' && (style['font-size'] += '');
         this.style = style;
         slLib.setLineHeight(style);
     }
