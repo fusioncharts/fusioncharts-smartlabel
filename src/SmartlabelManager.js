@@ -63,7 +63,7 @@ function SmartLabelManager(container, useEllipses, options) {
     this._showNoEllipses = !useEllipses;
     this._init = true;
     this.style = {};
-    this.oldStyle = 1;
+    this.oldStyle = {};
     this.options = options;
 
     this.setStyle();
@@ -139,17 +139,19 @@ SmartLabelManager.prototype._calCharDimWithCache = function (text = '', calculat
     }
 
     if (cachedStyle = cache[cacheName]) {
-        csArr = cachedStyle.split(',');
         return {
-            width: parseFloat(csArr[0], 10),
-            height: parseFloat(csArr[1], 10)
+            width: cachedStyle.width,
+            height: cachedStyle.height
         };
     }
 
     size = this._getDimention(text);
     size.width += asymmetricDifference;
 
-    cache[cacheName] = size.width + ',' + size.height;
+    cache[cacheName] = {
+        width: size.width,
+        height: size.height
+    };
     advancedCacheKey.push(cacheName);
     if (advancedCacheKey.length > maxAdvancedCacheLimit) {
         delete cache[advancedCacheKey.shift()];
@@ -197,6 +199,31 @@ SmartLabelManager.prototype._getWidthFn = function () {
 };
 
 /**
+ * Checks if two style object contains the same properties from the following list
+ * - font-size
+ * - font-family
+ * - font-style
+ * - font-weight
+ * - font-variant
+ */
+SmartLabelManager.prototype._isSameStyle = function () {
+    var sl = this,
+        oldStyle = sl.oldStyle || {},
+        style = sl.style,
+        key;
+
+    if (
+        (style.fontSize || style['font-size'] || '12px') !== (oldStyle.fontSize || oldStyle['font-size'] || '12px') ||
+        (style.fontFamily || style['font-family'] || 'Verdana,sans') !== (oldStyle.fontFamily || oldStyle['font-family'] || 'Verdana,sans') ||
+        (style.fontStyle || style['font-style'] || 'normal') !== (oldStyle.fontStyle || oldStyle['font-style'] || 'normal') ||
+        (style.fontWeight || style['font-weight'] || 'normal') !== (oldStyle.fontWeight || oldStyle['font-weight'] || 'normal') ||
+        (style.fontVariant || style['font-variant'] || 'normal') !== (oldStyle.fontVariant || oldStyle['font-variant'] || 'normal')
+    ) {
+        return false;
+    }
+    return true;
+} 
+/**
  * Sets font property of canvas context based on which the width of text is calculated.
  * 
  * @param {any} style style configuration which affects the text size
@@ -208,12 +235,14 @@ SmartLabelManager.prototype._getWidthFn = function () {
  *                      }
  */
 SmartLabelManager.prototype._setStyleOfCanvas = function () {
-    if (this.style === this.oldStyle) {
+    if (this._isSameStyle()) {
         return;
     }
 
     var sl = this,
         style = sl.style,
+        ctx = sl.ctx,
+        hashString,
         sCont,
         fontStyle = style.fontStyle || style['font-style'] || 'normal',
         fontVariant = style.fontVariant || style['font-variant'] || 'normal',
@@ -222,8 +251,9 @@ SmartLabelManager.prototype._setStyleOfCanvas = function () {
         fontFamily = style.fontFamily || style['font-family'] || 'Verdana,sans';
 
     fontSize += fontSize.indexOf('px') === -1 ? 'px' : '';
-    sl.ctx.font = fontStyle + ' ' + fontVariant + ' ' + fontWeight + ' ' + fontSize + ' ' + fontFamily;
-    
+    hashString = fontStyle + ' ' + fontVariant + ' ' + fontWeight + ' ' + fontSize + ' ' + fontFamily;
+
+    sl.ctx.font = hashString;
     sCont = this._containerObj = this._containerManager.get(style);
 
     if (this._containerObj) {
@@ -235,11 +265,11 @@ SmartLabelManager.prototype._setStyleOfCanvas = function () {
     } else {
         this._styleNotSet = true;
     }
-    sCont.ellipsesWidth = sl.ctx.measureText('...').width;
-    sCont.dotWidth = sl.ctx.measureText('.').width;
+    sCont.ellipsesWidth = sl._calCharDimWithCache('...', false).width;
+    sCont.dotWidth = sl._calCharDimWithCache('.', false).width;
     sCont.lineHeight = this._lineHeight = sCont.lineHeight || slLib._getCleanHeight(style.lineHeight);
     this.oldStyle = style;
-}; 
+};
 
 SmartLabelManager.prototype._setStyleOfDiv = function () {
     var sCont,

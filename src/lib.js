@@ -265,24 +265,10 @@ var lib = {
 			 * 
 			 * @param {string} input -  text which is to be examined for <br /> tag
 			 * 
-			 * @returns {any} - Array containing index of occurance of <br />, else undefined.
+			 * @returns {boolean} - whether text contains only <br> tag
 			 */
 			_hasOnlyBRTag: function (input = '') {
-				var i,
-					len,
-					text = input.replace(lib.brRegex, '<br />'),
-					brTagArray = text.split('<br />'),
-					brTagArrayLen = brTagArray.length,
-					index = [];
-
-				// Check for other tags
-				for (i = 0; i < brTagArrayLen; i++) {
-					if(lib.xmlTagRegEx.test(brTagArray[i])) {
-						return false;
-					}
-				}
-
-				return (brTagArrayLen > 1);
+				return !(lib.xmlTagRegEx.test(input)) && lib.brRegex.test(input);
 			},
 
 			/**
