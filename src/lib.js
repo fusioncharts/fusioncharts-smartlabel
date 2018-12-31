@@ -186,6 +186,20 @@ var lib = {
 			    return charLen;
 			},
 
+			/**
+			 * parses the style information
+			 */
+			parseStyle: function (style = {}) {
+				var parsedStyle = {};
+
+				parsedStyle.fontSize = (style.fontSize || style['font-size'] || '12px') + '';
+				parsedStyle.fontVariant = style.fontVariant || style['font-variant'] || 'normal';
+				parsedStyle.fontWeight = style.fontWeight || style['font-weight'] || 'normal';
+				parsedStyle.fontStyle = style.fontStyle || style['font-style'] || 'normal';
+				parsedStyle.fontFamily = style.fontFamily || style['font-family'] || 'Verdana,sans';
+
+				return parsedStyle;
+			},
 			/*
 			 * Determine lineheight of a text for a given style. It adds propery lineHeight to the style passed
 			 *
@@ -195,7 +209,7 @@ var lib = {
 			 * @return {Object} - The style that was passed with lineHeight as a named propery set on the object.
 			 */
 			setLineHeight: function  (styleObj) {
-		        var fSize = styleObj.fontSize = (styleObj.fontSize || styleObj['font-size'] || '12px');
+		        var fSize = styleObj.fontSize;
 		        styleObj.lineHeight = styleObj.lineHeight || styleObj['line-height'] || ((parseInt(fSize, 10) * 1.2) + 'px');
 		        return styleObj;
 			},

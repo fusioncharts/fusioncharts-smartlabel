@@ -115,10 +115,9 @@ SmartLabelManager.prototype._calCharDimWithCache = function (text = '', calculat
 
         cache = this._advancedCache = this._advancedCache || (this._advancedCache = {}),
         advancedCacheKey = this._advancedCacheKey || (this._advancedCacheKey = []),
-        cacheName = text + (style.fontSize || BLANK) + (style.fontFamily || BLANK) + (style.fontWeight || BLANK) +
-           (style.fontStyle || BLANK),
-        cacheInitName = text + 'init' + (style.fontSize || BLANK) + (style.fontFamily || BLANK) +
-           (style.fontWeight || BLANK) + (style.fontStyle || BLANK);
+        cacheName = text + style.fontSize + style.fontFamily + style.fontWeight + style.fontStyle,
+        cacheInitName = text + 'init' + style.fontSize + style.fontFamily +
+           style.fontWeight + style.fontStyle;
 
     !this.ctx && htmlSplCharSpace[text] && (text = htmlSplCharSpace[text]);
 
@@ -213,11 +212,11 @@ SmartLabelManager.prototype._isSameStyle = function () {
         key;
 
     if (
-        (style.fontSize || style['font-size'] || '12px') !== (oldStyle.fontSize || oldStyle['font-size'] || '12px') ||
-        (style.fontFamily || style['font-family'] || 'Verdana,sans') !== (oldStyle.fontFamily || oldStyle['font-family'] || 'Verdana,sans') ||
-        (style.fontStyle || style['font-style'] || 'normal') !== (oldStyle.fontStyle || oldStyle['font-style'] || 'normal') ||
-        (style.fontWeight || style['font-weight'] || 'normal') !== (oldStyle.fontWeight || oldStyle['font-weight'] || 'normal') ||
-        (style.fontVariant || style['font-variant'] || 'normal') !== (oldStyle.fontVariant || oldStyle['font-variant'] || 'normal')
+        (style.fontSize !== oldStyle.fontSize) ||
+        (style.fontFamily !== oldStyle.fontFamily) ||
+        (style.fontStyle !== oldStyle.fontStyle) ||
+        (style.fontWeight !== oldStyle.fontWeight) ||
+        (style.fontVariant !== oldStyle.fontVariant)
     ) {
         return false;
     }
@@ -244,11 +243,11 @@ SmartLabelManager.prototype._setStyleOfCanvas = function () {
         ctx = sl.ctx,
         hashString,
         sCont,
-        fontStyle = style.fontStyle || style['font-style'] || 'normal',
-        fontVariant = style.fontVariant || style['font-variant'] || 'normal',
-        fontWeight = style.fontWeight || style['font-weight'] || 'normal',
-        fontSize = style.fontSize || style['font-size'] || '12px',
-        fontFamily = style.fontFamily || style['font-family'] || 'Verdana,sans';
+        fontStyle = style.fontStyle,
+        fontVariant = style.fontVariant,
+        fontWeight = style.fontWeight,
+        fontSize = style.fontSize,
+        fontFamily = style.fontFamily;
 
     fontSize += fontSize.indexOf('px') === -1 ? 'px' : '';
     hashString = fontStyle + ' ' + fontVariant + ' ' + fontWeight + ' ' + fontSize + ' ' + fontFamily;
@@ -306,13 +305,8 @@ SmartLabelManager.prototype._updateStyle = function () {
  * @return {SmartLabelManager} - Current instance of SmartLabelManager
  */
 SmartLabelManager.prototype.setStyle = function (style) {
-    if (style) {
-        // If fontsize is present and provided as number, change it to string
-        typeof style.fontSize !== 'undefined' && (style.fontSize += '');
-        typeof style['font-size'] !== 'undefined' && (style['font-size'] += '');
-        this.style = style;
-        slLib.setLineHeight(style);
-    }
+    this.style = slLib.parseStyle(style);
+    slLib.setLineHeight(this.style);
 };
 
 /*
