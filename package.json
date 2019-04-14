@@ -4,7 +4,13 @@
   "description": "SmartLabel component to measure and restrict text in svg / canvas",
   "main": "lib/SmartlabelManager.js",
   "author": "FusionCharts Technologies  &lt;support@fusioncharts.com&gt;",
-  "contributors": ["Akash Goswami", "Rohit Kumar", "Shamasis Bhattacharya", "Subhash Haldar"],
+  "contributors": [
+    "Akash Goswami",
+    "Rohit Kumar",
+    "Shamasis Bhattacharya",
+    "Subhash Haldar",
+    "Priyanjit Dey"
+  ],
   "license": "MIT",
   "homepage": "https://github.com/fusioncharts/fusioncharts-smartlabel",
   "repository": {
@@ -15,13 +21,13 @@
     "url": "https://github.com/fusioncharts/fusioncharts-smartlabel/issues"
   },
   "devDependencies": {
-    "babel-eslint": "^4.1.3",
+    "babel-eslint": "^8.2.2",
     "chai": "^3.5.0",
     "coveralls": "^2.11.15",
     "d3": "^4.4.0",
-    "eslint": "^1.6.0",
-    "eslint-plugin-react": "^3.5.1",
-    "gulp": "^3.9.0",
+    "eslint": "^4.19.1",
+    "eslint-plugin-react": "^7.7.0",
+    "gulp": "^3.9.1",
     "karma": "^1.3.0",
     "karma-chai": "^0.1.0",
     "karma-coverage": "^1.1.1",
