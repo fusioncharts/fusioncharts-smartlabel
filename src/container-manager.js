@@ -121,7 +121,7 @@ ContainerManager.prototype._makeDivNode = function (container) {
         container.dotWidth = node.offsetWidth;
         node.innerHTML = '';
     }
-}
+};
 ContainerManager.prototype.addContainer = function (keyStr) {
     var container;
 

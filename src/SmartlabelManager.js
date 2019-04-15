@@ -6,7 +6,6 @@ var slLib = lib.init(window),
     M = slLib.win.Math,
     max = M.max,
     round = M.round,
-    BLANK = '',
     htmlSplCharSpace = { ' ': '&nbsp;' },
     documentSupport = slLib.getDocumentSupport(),
     SVG_BBOX_CORRECTION = documentSupport.isWebKit ? 0 : 4.5;
@@ -101,7 +100,6 @@ SmartLabelManager.prototype._calCharDimWithCache = function (text = '', calculat
     }
 
     var size,
-        csArr,
         tw,
         twi,
         cachedStyle,
@@ -165,7 +163,7 @@ SmartLabelManager.prototype._getDimention = function (text) {
     } else {
         return slLib._getDimentionUsingCanvas(text, this);
     }
-}
+};
 // Provide function to calculate the height and width based on the environment and available support from dom.
 SmartLabelManager.prototype._getWidthFn = function () {
     var sl = this,
@@ -208,8 +206,7 @@ SmartLabelManager.prototype._getWidthFn = function () {
 SmartLabelManager.prototype._isSameStyle = function () {
     var sl = this,
         oldStyle = sl.oldStyle || {},
-        style = sl.style,
-        key;
+        style = sl.style;
 
     if (
         (style.fontSize !== oldStyle.fontSize) ||
@@ -221,7 +218,7 @@ SmartLabelManager.prototype._isSameStyle = function () {
         return false;
     }
     return true;
-} 
+};
 /**
  * Sets font property of canvas context based on which the width of text is calculated.
  * 
@@ -240,7 +237,6 @@ SmartLabelManager.prototype._setStyleOfCanvas = function () {
 
     var sl = this,
         style = sl.style,
-        ctx = sl.ctx,
         hashString,
         sCont,
         fontStyle = style.fontStyle,
@@ -286,11 +282,11 @@ SmartLabelManager.prototype._setStyleOfDiv = function () {
     } else {
         this._styleNotSet = true;
     }
-}
+};
 
 SmartLabelManager.prototype._updateStyle = function () {
     return (this.requireDiv || !this.ctx) ? this._setStyleOfDiv() : this._setStyleOfCanvas();
-}
+};
 /*
  * Sets the style based on which the text's metrics to be calculated.
  *
@@ -307,6 +303,8 @@ SmartLabelManager.prototype._updateStyle = function () {
 SmartLabelManager.prototype.setStyle = function (style) {
     this.style = slLib.parseStyle(style);
     slLib.setLineHeight(this.style);
+
+    return this;
 };
 
 /*
@@ -392,7 +390,6 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
         strHeight = 0,
         oriTextArr = [],
         i = 0,
-        j,
         ellipsesStr = (this._showNoEllipses ? '' : '...'),
         lineHeight,
         context,
@@ -618,7 +615,7 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
                             smartLabel.tooltext = toolText;
                             smartLabel.width = maxStrWidth;
                             smartLabel.height = strHeight - this._lineHeight;
-                            return smartLabel
+                            return smartLabel;
                         }
                     }
 
