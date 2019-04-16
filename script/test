@@ -29,8 +29,13 @@ echo " | (__/ _ \ '  \| '_ \ | | | ' \/ _\` |";
 echo "  \___\___/_|_|_| .__/_|_|_|_||_\__, |";
 echo "                |_|             |___/ ";
 echo -e "\033[0m";
+
+# Make the minified es modules
+npm run minify
+echo "Source files minified"
 # Make the build
 npm run build
+echo "Build files generated"
 
 # Delete any temporary folder
 rm -rf $temp_folder

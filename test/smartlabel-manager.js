@@ -1,9 +1,7 @@
 /* global chai, describe, it, before */
-
 'use strict';
 
-var	expect = chai.expect,
-	SmartLabelManager = require('fusioncharts-smartlabel');
+var	expect = chai.expect;
 
 describe('SmartLabelManager', function () {
 	var sl;
@@ -116,7 +114,7 @@ describe('SmartLabelManager', function () {
 		function () {
 			var smartlabel = sl.getSmartText('a quick brown fox over the lazy dog', 80, 50);
 
-			expect(smartlabel.text).to.equal('a quick<br/>brown f');
+			expect(smartlabel.text).to.equal('a quick<br />brown f');
 		});
 
 

@@ -2,14 +2,15 @@
   "name": "fusioncharts-smartlabel",
   "version": "1.0.2",
   "description": "SmartLabel component to measure and restrict text in svg / canvas",
-  "main": "lib/SmartlabelManager.js",
+  "main": "dist/fusioncharts-smartlabel.min.js",
+  "module": "es/SmartlabelManager.js",
   "author": "FusionCharts Technologies  &lt;support@fusioncharts.com&gt;",
   "contributors": [
     "Akash Goswami",
+    "Priyanjit Dey",
     "Rohit Kumar",
     "Shamasis Bhattacharya",
-    "Subhash Haldar",
-    "Priyanjit Dey"
+    "Subhash Haldar"
   ],
   "license": "MIT",
   "homepage": "https://github.com/fusioncharts/fusioncharts-smartlabel",
@@ -21,7 +22,11 @@
     "url": "https://github.com/fusioncharts/fusioncharts-smartlabel/issues"
   },
   "devDependencies": {
+    "@babel/cli": "^7.4.3",
+    "@babel/core": "^7.4.3",
+    "@babel/preset-env": "^7.4.3",
     "babel-eslint": "^8.2.2",
+    "babel-loader": "^8.0.5",
     "chai": "^3.5.0",
     "coveralls": "^2.11.15",
     "d3": "^4.4.0",
@@ -37,13 +42,16 @@
     "mocha": "^3.2.0",
     "react": "^0.14.0",
     "react-component-gulp-tasks": "^0.7.6",
-    "react-dom": "^0.14.0"
+    "react-dom": "^0.14.0",
+    "webpack": "^4.30.0",
+    "webpack-cli": "^3.3.0"
   },
   "browserify-shim": {
     "react": "global:React"
   },
   "scripts": {
-    "build": "gulp clean && NODE_ENV=production gulp build",
+    "build": "rm -rf dist/ && npx webpack --dev && npx webpack --prod",
+    "minify": "rm -rf es/ && npx babel src -d es --minified --no-comments",
     "lint": "eslint ./; true",
     "start": "gulp dev",
     "test": "script/test",
