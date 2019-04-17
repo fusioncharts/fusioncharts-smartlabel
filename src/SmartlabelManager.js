@@ -913,6 +913,12 @@ SmartLabelManager.prototype.getOriSize = function (text = '', detailedCalculatio
         return false;
     }
 
+    if (text === undefined || text === null) {
+        text = '';
+    } else if (typeof text !== 'string') {
+        text = text.toString();
+    }
+
     var textArr,
         letter,
         lSize,
