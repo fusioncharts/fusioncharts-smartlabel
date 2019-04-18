@@ -6,7 +6,6 @@ var lib = {
         	DIV = 'DIV',
         	ceil = Math.ceil,
         	floor = Math.floor,
-        	containerInstanceCount = 0,
         	clsNameSpace = 'fusioncharts-smartlabel-',
         	containerClass = clsNameSpace + 'container',
         	classNameWithTag = clsNameSpace + 'tag',
@@ -21,11 +20,17 @@ var lib = {
 
 			classNameWithTagBR: classNameWithTagBR,
 			
-			maxDefaultCacheLimit: 500,
+			maxDefaultCacheLimit: 1000,
 
-			classNameReg: new RegExp('\b' + classNameWithTag + '\b'),
+			// The regex we get from new RegExp does not perform the work as intended
+
+			// classNameReg: new RegExp('\b' + classNameWithTag + '\b'),
 			
-			classNameBrReg: new RegExp('\b' + classNameWithTagBR + '\b'),
+			// classNameBrReg: new RegExp('\b' + classNameWithTagBR + '\b'),
+
+			classNameReg: /\bfusioncharts-smartlabel-tag\b/,
+
+			classNameBrReg: /\bfusioncharts-smartlabel-br\b/,
 
 			spanAdditionRegx: /(<[^<\>]+?\>)|(&(?:[a-z]+|#[0-9]+);|.)/ig,
 			
@@ -35,7 +40,11 @@ var lib = {
 
 			xmlTagRegEx: new RegExp('<[^>][^<]*[^>]+>', 'i'),
 
+			brRegex: new RegExp('({br[ ]*})|(<br[ ]*>)|(<br[ ]*\/>)|(<BR[ ]*\/>)|(<br\\>)', 'g'),
+
 			ltgtRegex: /&lt;|&gt;/g,
+
+			htmlSpecialEntityRegex: /&amp;|&quot;|&lt;|&gt;/g,
         	
         	brReplaceRegex: /<br\/>/ig,
 
@@ -124,7 +133,6 @@ var lib = {
 			            container.className = containerClass;
 			            container.setAttribute('aria-hidden', 'true');
 			            container.setAttribute('role', 'presentation');
-			            containerInstanceCount += 1;
 			            body.appendChild(container);
 			            return container;
 			        }
@@ -178,6 +186,20 @@ var lib = {
 			    return charLen;
 			},
 
+			/**
+			 * parses the style information
+			 */
+			parseStyle: function (style = {}) {
+				var parsedStyle = {};
+
+				parsedStyle.fontSize = (style.fontSize || style['font-size'] || '12px') + '';
+				parsedStyle.fontVariant = style.fontVariant || style['font-variant'] || 'normal';
+				parsedStyle.fontWeight = style.fontWeight || style['font-weight'] || 'normal';
+				parsedStyle.fontStyle = style.fontStyle || style['font-style'] || 'normal';
+				parsedStyle.fontFamily = style.fontFamily || style['font-family'] || 'Verdana,sans';
+
+				return parsedStyle;
+			},
 			/*
 			 * Determine lineheight of a text for a given style. It adds propery lineHeight to the style passed
 			 *
@@ -187,10 +209,171 @@ var lib = {
 			 * @return {Object} - The style that was passed with lineHeight as a named propery set on the object.
 			 */
 			setLineHeight: function  (styleObj) {
-		        var fSize = styleObj.fontSize = (styleObj.fontSize || '12px');
+		        var fSize = styleObj.fontSize;
 		        styleObj.lineHeight = styleObj.lineHeight || styleObj['line-height'] || ((parseInt(fSize, 10) * 1.2) + 'px');
 		        return styleObj;
-		    }
+			},
+
+			/**
+			 * Returns the clean height by removing 'px' if present.
+			 */
+			_getCleanHeight: function (height) {
+				// Remove 'px' from  height and convert it to number
+				height = height.replace(/px/g, '');
+				return Number(height);
+			},
+			/**
+			 * Div is used for calculation of text dimention in all non-canvas browsers. It sets the text as
+			 * innerHTML of the div and uses it's offsetWidth and offsetHeight as width and height respectively
+			 *
+			 * @param {string} text - text, whose measurements are to be calculated
+			 * 
+			 * @returns {Object} - dimension of text
+			 */
+			_getDimentionUsingDiv: function (text = '', sl) {
+				var container = sl._container;
+			
+				// In case text is an array, convert it to string.
+				if (text instanceof Array) {
+					text = text.join('');
+				}
+				container.innerHTML = text;
+				return {
+					width: container.offsetWidth,
+					height: container.offsetHeight
+				};
+			},
+
+			/**
+			 * Returns the height and width of a text using the canvas.measureText API.
+			 * Used for calculating width in browsers supporting html canvas.
+			 * In case canvas is not present, <div> is used for calculation as a fallback solution
+			 * 
+			 * @param {any} text -  text. Can be array or string.
+			 * 
+			 * @return {Object} - width and height.
+			 */
+			_getDimentionUsingCanvas: function (text = '', sl) {
+				var ctx = sl.ctx,
+					style = sl.style,
+					height = lib._getCleanHeight(style.lineHeight);
+
+				// In case text is string, remove <br /> from it.
+				if (!(text instanceof Array)) {
+					text = text.replace(/<br \/>/g, '');
+				} else {
+					// Else if it an array, convert it to string and remove <br />
+					text = text.join('');
+					text = text.replace(/<br \/>/g, '');
+				}
+
+				return {
+					width: ctx.measureText(text).width,
+					height: height
+				};
+			},
+
+			/**
+			 * Checks if text contains any <br /> tag. If yes, it returns all the indexes of it.
+			 * Else, it returns undefined.
+			 * 
+			 * @param {string} input -  text which is to be examined for <br /> tag
+			 * 
+			 * @returns {boolean} - whether text contains only <br> tag
+			 */
+			_hasOnlyBRTag: function (input = '') {
+				return !(lib.xmlTagRegEx.test(input)) && lib.brRegex.test(input);
+			},
+
+			/**
+			 * For a text containing <br /> it returns the height and width of the text
+			 * 
+			 */
+			_getDimentionOfMultiLineText: function (rawText = '', sl) {
+				var i,
+					len,
+					text = rawText.replace(lib.brRegex, '<br />'),
+					textAr = lib._getTextArray(text),
+					width = 0,
+					maxWidth = 0,
+					getWidth = sl._getWidthFn(),
+					height = lib._getCleanHeight(sl.style.lineHeight),
+					textHeight = height,
+					textWidth,
+					indiSizeStore = {};
+
+				for (i = 0, len = textAr.length; i < len; i++) {
+					if (textAr[i] === '<br />') {
+						// In case of <br />, reset width to 0, since it will be new line now.
+						// Also, increase the line height.
+						maxWidth = Math.max(maxWidth, width);
+						width = 0;
+						textHeight += height;
+					} else {
+						// Else, calculate the width of the line.
+						textWidth = getWidth(textAr[i]);
+						width += textWidth;
+						indiSizeStore[textAr[i]] = textWidth;
+					}
+				}
+
+				maxWidth = Math.max(maxWidth, width);
+				return {
+					height: textHeight,
+					width: maxWidth,
+					detailObj: indiSizeStore
+				};
+			},
+
+			/**
+			 * Splits text into array and returns. Special functionality is, it treats <br /> as a single character
+			 */
+			_getTextArray: function (text = '') {
+				var i,
+					j,
+					len,
+					tempLen,
+					brText,
+					tempText,
+					finaltextAr = [];
+
+				// Split using <br />
+				brText = text.split('<br />');
+				len = brText.length;
+
+				for (i = 0; i < len; i++) {
+					tempText = brText[i].split('');
+					tempLen = tempText.length;
+
+					// for each array retrieved by spliting using <br /> push elements to finalArray.
+					for (j = 0; j < tempLen; j++) {
+						finaltextAr.push(tempText[j]);
+					}
+
+					// Check if tempText is not the last text. IF true, add <br /> to the final Array.
+					if (i !== len - 1) {
+						finaltextAr.push('<br />');
+					}
+				}
+
+				return finaltextAr;
+			},
+
+			/**
+			 * Returns the last occurance of item in a array
+			 */
+			_findLastIndex: function (array = [], item) {
+				var i,
+					len = array.length;
+
+				for (i = len - 1; i >= 0; i--) {
+					if (array[i] === item) {
+						return i;
+					}
+				}
+
+				return -1;
+			}
 		};
 
 		return lib;

@@ -32,3 +32,5 @@ node_modules
 
 # ignore temporary build folders
 _build/
+
+package-lock.json

@@ -1,26 +1,23 @@
 import lib from './lib';
 import ContainerManager from './container-manager';
 
-var slLib = lib.init(typeof window !== "undefined" ? window : this),
+var slLib = lib.init(window),
     doc = slLib.win.document,
     M = slLib.win.Math,
     max = M.max,
     round = M.round,
-    BLANK = '',
     htmlSplCharSpace = { ' ': '&nbsp;' },
     documentSupport = slLib.getDocumentSupport(),
     SVG_BBOX_CORRECTION = documentSupport.isWebKit ? 0 : 4.5;
 
+
 /*
- * Create new instance of SmartLabelManager.
- *
+ * @constrcutor
  * SmartLabelManager controls the lifetime of the execution space where the text's metrics will be calculated.
  * This takes a string for a given style and returns the height, width.
  * If a bound box is defined it wraps the text and returns the wrapped height and width.
  * It allows to append ellipsis at the end if the text is truncated.
  *
- * @param {String | Number} id - Id of the instance. If the same id is passed, it disposes the old instance and
- *                              save the new one;
  * @param {String | HTMLElement} container - The id or the instance of the container where the intermediate dom
  *                              elements are to be attached. If not passed, it appends in div
  *
@@ -29,25 +26,14 @@ var slLib = lib.init(typeof window !== "undefined" ? window : this),
  *                          {
  *                              maxCacheLimit: No of letter to be cached. Default: 500.
  *                          }
- * @constructor
  */
-function SmartLabelManager(id, container, useEllipses, options) {
+function SmartLabelManager(container, useEllipses, options) {
     var wrapper,
         prop,
         max,
-        prevInstance,
         isBrowserLess = false,
-        store = SmartLabelManager.store;
+        canvas = window.document.createElement('canvas');
 
-    if (typeof id === 'undefined' || typeof id === 'object') {
-        return;
-    }
-
-    if (prevInstance = store[id]) {
-        prevInstance.dispose();
-    }
-
-    store[id] = this;
     options = options || {};
     options.maxCacheLimit = isFinite(max = options.maxCacheLimit) ? max : slLib.maxDefaultCacheLimit;
 
@@ -67,13 +53,16 @@ function SmartLabelManager(id, container, useEllipses, options) {
         wrapper.style[prop] = slLib.parentContainerStyle[prop];
     }
 
-    this.id = id;
     this.parentContainer = wrapper;
 
+    // Get a context of canvas
+    this.ctx = canvas && canvas.getContext && canvas.getContext('2d');
+    
     this._containerManager = new ContainerManager(wrapper, isBrowserLess, 10);
     this._showNoEllipses = !useEllipses;
     this._init = true;
     this.style = {};
+    this.oldStyle = {};
     this.options = options;
 
     this.setStyle();
@@ -102,43 +91,41 @@ SmartLabelManager.textToLines = function (smartlabel) {
     return smartlabel;
 };
 
-// Saves all the instance created so far
-SmartLabelManager.store = {};
 
 // Calculates space taken by a character with an approximation value which is calculated by repeating the
 // character by string length times.
-SmartLabelManager.prototype._calCharDimWithCache = function (text, calculateDifference, length) {
+SmartLabelManager.prototype._calCharDimWithCache = function (text = '', calculateDifference, length) {
     if (!this._init) {
         return false;
     }
 
     var size,
-        csArr,
         tw,
         twi,
         cachedStyle,
         asymmetricDifference,
         maxAdvancedCacheLimit = this.options.maxCacheLimit,
-        container = this._container,
         style = this.style || {},
-        cache = this._advancedCache || (this._advancedCache = {}),
-        advancedCacheKey = this._advancedCacheKey || (this._advancedCacheKey = []),
-        cacheName = text + (style.fontSize || BLANK) + (style.fontFamily || BLANK) + (style.fontWeight || BLANK) +
-           (style.fontStyle || BLANK),
-       cacheInitName = text + 'init' + (style.fontSize || BLANK) + (style.fontFamily || BLANK) +
-           (style.fontWeight || BLANK) + (style.fontStyle || BLANK);
+        cache,
+        advancedCacheKey,
+        cacheName,
+        cacheInitName;
 
-    htmlSplCharSpace[text] && (text = htmlSplCharSpace[text]);
+        cache = this._advancedCache = this._advancedCache || (this._advancedCache = {}),
+        advancedCacheKey = this._advancedCacheKey || (this._advancedCacheKey = []),
+        cacheName = text + style.fontSize + style.fontFamily + style.fontWeight + style.fontStyle,
+        cacheInitName = text + 'init' + style.fontSize + style.fontFamily +
+           style.fontWeight + style.fontStyle;
+
+    !this.ctx && htmlSplCharSpace[text] && (text = htmlSplCharSpace[text]);
 
     if (!calculateDifference) {
         asymmetricDifference = 0;
     } else {
         if ((asymmetricDifference = cache[cacheInitName]) === undefined) {
-            container.innerHTML = text.repeat ? text.repeat(length) : Array(length + 1).join(text); // jshint ignore:line
-            tw = container.offsetWidth;
+            tw = this._getDimention(text.repeat ? text.repeat(length) : Array(length + 1).join(text)).width;
 
-            container.innerHTML = text;
-            twi = container.offsetWidth;
+            twi = this._getDimention(text).width;
 
             asymmetricDifference = cache[cacheInitName] = (tw - length * twi) / (length + 1);
             advancedCacheKey.push(cacheInitName);
@@ -149,21 +136,19 @@ SmartLabelManager.prototype._calCharDimWithCache = function (text, calculateDiff
     }
 
     if (cachedStyle = cache[cacheName]) {
-        csArr = cachedStyle.split(',');
         return {
-            width: parseFloat(csArr[0], 10),
-            height: parseFloat(csArr[1], 10)
+            width: cachedStyle.width,
+            height: cachedStyle.height
         };
     }
 
-    container.innerHTML = text;
+    size = this._getDimention(text);
+    size.width += asymmetricDifference;
 
-    size = {
-        height: container.offsetHeight,
-        width: container.offsetWidth + asymmetricDifference
+    cache[cacheName] = {
+        width: size.width,
+        height: size.height
     };
-
-    cache[cacheName] = size.width + ',' + size.height;
     advancedCacheKey.push(cacheName);
     if (advancedCacheKey.length > maxAdvancedCacheLimit) {
         delete cache[advancedCacheKey.shift()];
@@ -172,10 +157,17 @@ SmartLabelManager.prototype._calCharDimWithCache = function (text, calculateDiff
     return size;
 };
 
+SmartLabelManager.prototype._getDimention = function (text) {
+    if (this.requireDiv || !this.ctx) {
+        return slLib._getDimentionUsingDiv(text, this);
+    } else {
+        return slLib._getDimentionUsingCanvas(text, this);
+    }
+};
 // Provide function to calculate the height and width based on the environment and available support from dom.
 SmartLabelManager.prototype._getWidthFn = function () {
-    var contObj = this._containerObj,
-        container = this._container,
+    var sl = this,
+        contObj = sl._containerObj,
         svgText = contObj.svgText;
 
     if (svgText) {
@@ -194,12 +186,107 @@ SmartLabelManager.prototype._getWidthFn = function () {
         };
     } else {
         return function (str) {
-            container.innerHTML = str;
-            return container.offsetWidth;
+            if (sl.requireDiv || !sl.ctx) {
+                return slLib._getDimentionUsingDiv(str, sl).width;
+            } else {
+                return slLib._getDimentionUsingCanvas(str, sl).width;
+            }
         };
     }
 };
 
+/**
+ * Checks if two style object contains the same properties from the following list
+ * - font-size
+ * - font-family
+ * - font-style
+ * - font-weight
+ * - font-variant
+ */
+SmartLabelManager.prototype._isSameStyle = function () {
+    var sl = this,
+        oldStyle = sl.oldStyle || {},
+        style = sl.style;
+
+    if (
+        (style.fontSize !== oldStyle.fontSize) ||
+        (style.fontFamily !== oldStyle.fontFamily) ||
+        (style.fontStyle !== oldStyle.fontStyle) ||
+        (style.fontWeight !== oldStyle.fontWeight) ||
+        (style.fontVariant !== oldStyle.fontVariant)
+    ) {
+        return false;
+    }
+    return true;
+};
+/**
+ * Sets font property of canvas context based on which the width of text is calculated.
+ * 
+ * @param {any} style style configuration which affects the text size
+ *                      {
+ *                          fontSize / 'font-size' : MUST BE FOLLOWED BY PX (10px, 11px)
+ *                          fontFamily / 'font-family'
+ *                          fontWeight / 'font-weight'
+ *                          fontStyle / 'font-style'
+ *                      }
+ */
+SmartLabelManager.prototype._setStyleOfCanvas = function () {
+    if (this._isSameStyle()) {
+        return;
+    }
+
+    var sl = this,
+        style = sl.style,
+        hashString,
+        sCont,
+        fontStyle = style.fontStyle,
+        fontVariant = style.fontVariant,
+        fontWeight = style.fontWeight,
+        fontSize = style.fontSize,
+        fontFamily = style.fontFamily;
+
+    fontSize += fontSize.indexOf('px') === -1 ? 'px' : '';
+    hashString = fontStyle + ' ' + fontVariant + ' ' + fontWeight + ' ' + fontSize + ' ' + fontFamily;
+
+    sl.ctx.font = hashString;
+    sCont = this._containerObj = this._containerManager.get(style);
+
+    if (this._containerObj) {
+        this._container = sCont.node;
+        this._context = sCont.context;
+        this._cache = sCont.charCache;
+        this._lineHeight = sCont.lineHeight;
+        this._styleNotSet = false;
+    } else {
+        this._styleNotSet = true;
+    }
+    sCont.ellipsesWidth = sl._calCharDimWithCache('...', false).width;
+    sCont.dotWidth = sl._calCharDimWithCache('.', false).width;
+    sCont.lineHeight = this._lineHeight = sCont.lineHeight || slLib._getCleanHeight(style.lineHeight);
+    this.oldStyle = style;
+};
+
+SmartLabelManager.prototype._setStyleOfDiv = function () {
+    var sCont,
+        style = this.style;
+
+    this._containerObj = sCont = this._containerManager.get(style);
+    !sCont.node && this._containerManager._makeDivNode(this._containerObj);
+
+    if (this._containerObj) {
+        this._container = sCont.node;
+        this._context = sCont.context;
+        this._cache = sCont.charCache;
+        this._lineHeight = sCont.lineHeight;
+        this._styleNotSet = false;
+    } else {
+        this._styleNotSet = true;
+    }
+};
+
+SmartLabelManager.prototype._updateStyle = function () {
+    return (this.requireDiv || !this.ctx) ? this._setStyleOfDiv() : this._setStyleOfCanvas();
+};
 /*
  * Sets the style based on which the text's metrics to be calculated.
  *
@@ -214,34 +301,8 @@ SmartLabelManager.prototype._getWidthFn = function () {
  * @return {SmartLabelManager} - Current instance of SmartLabelManager
  */
 SmartLabelManager.prototype.setStyle = function (style) {
-    if (!this._init) {
-        return this;
-    }
-
-    var sCont;
-
-    if (style === this.style && !this._styleNotSet) {
-        return;
-    }
-
-    if (!style) {
-        style = this.style;
-    }
-
-    slLib.setLineHeight(style);
-    this.style = style;
-
-    this._containerObj = sCont = this._containerManager.get(style);
-
-    if (this._containerObj) {
-        this._container = sCont.node;
-        this._context = sCont.context;
-        this._cache = sCont.charCache;
-        this._lineHeight = sCont.lineHeight;
-        this._styleNotSet = false;
-    } else {
-        this._styleNotSet = true;
-    }
+    this.style = slLib.parseStyle(style);
+    slLib.setLineHeight(this.style);
 
     return this;
 };
@@ -330,16 +391,19 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
         oriTextArr = [],
         i = 0,
         ellipsesStr = (this._showNoEllipses ? '' : '...'),
-        lineHeight = this._lineHeight,
-        context = this._context,
-        container = this._container,
-        sCont = this._containerObj,
-        ellipsesWidth = sCont.ellipsesWidth,
-        dotWidth =  sCont.dotWidth,
+        lineHeight,
+        context,
+        container,
+        sCont,
+        ellipsesWidth,
+        dotWidth,
+        canvas = this.ctx,
         characterArr = [],
         dashIndex = -1,
         spaceIndex = -1,
         lastLineBreak = -1,
+        hasOnlyBrTag,
+        dimentionObj,
         fastTrim = function (str) {
             str = str.replace(/^\s\s*/, '');
             var ws = /\s/, i = str.length;
@@ -358,30 +422,59 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
             isTruncated : false
         };
 
+    hasHTMLTag = slLib.xmlTagRegEx.test(text);
+    hasOnlyBrTag = slLib._hasOnlyBRTag(text);
+
+    this.requireDiv = (hasHTMLTag && !hasOnlyBrTag);
+    this._updateStyle();
+
+    lineHeight = this._lineHeight;
+    context = this._context;
+    container = this._container;
+    sCont = this._containerObj;
+    ellipsesWidth = sCont.ellipsesWidth;
+    dotWidth = sCont.dotWidth;
+
+    toolText = text.replace(slLib.spanAdditionRegx, '$2');
     getWidth = this._getWidthFn();
 
     // In some browsers, offsetheight of a single-line text is getting little (1 px) heigher value of the
     // lineheight. As a result, smartLabel is unable to return single-line text.
     // To fix this, increase the maxHeight a little amount. Hence maxHeight =  lineHeight * 1.2
-    if (maxHeight === lineHeight) {
+    /**
+     * For canvas lineHeight is directly used. In some cases, lineHeight can be 0.x pixels greater than
+     * maxHeight. Previously, div was used to calculate lineHeight and it used to return a rounded number.
+     * 
+     * Adding a buffer of 1px, maxheight will be increased by a factor of 1.2 only when 
+     * 0 <= (lineHeight - maxHeight) <= 1
+     */
+    if ((lineHeight - maxHeight <= 1) && (lineHeight - maxHeight >= 0)) {
         maxHeight *= 1.2;
     }
 
-
-    if (container) {
+    if (canvas || container) {
         if (!documentSupport.isBrowserLess) {
-            hasHTMLTag = slLib.xmlTagRegEx.test(text);
+
             if (!hasHTMLTag) {
                 // Due to support of <,> for xml we convert &lt;, &gt; to <,> respectively so to get the correct
                 // width it is required to convert the same before calculation for the new improve version of the
                 // get text width.
-                tmpText = text.replace(slLib.ltgtRegex, function (match) {
+                tmpText = text = text.replace(slLib.ltgtRegex, function (match) {
                     return match === '&lt;' ? '<' : '>';
                 });
-                getOriSizeImproveObj = this.getOriSize(tmpText, true);
+                getOriSizeImproveObj = this.getOriSize(tmpText, true, {
+                    hasHTMLTag: hasHTMLTag,
+                    hasOnlyBrTag: hasOnlyBrTag,
+                    cleanText: true
+                });
 
                 smartLabel.oriTextWidth = oriWidth = getOriSizeImproveObj.width;
                 smartLabel.oriTextHeight = oriHeight = getOriSizeImproveObj.height;
+            } else if (hasOnlyBrTag) {
+                text = text.replace(slLib.brRegex, '<br />');
+                dimentionObj = slLib._getDimentionOfMultiLineText(text, this);
+                smartLabel.oriTextWidth = oriWidth = dimentionObj.width;
+                smartLabel.oriTextHeight = oriHeight = dimentionObj.height;
             } else {
                 container.innerHTML = text;
                 smartLabel.oriTextWidth = oriWidth = container.offsetWidth;
@@ -406,8 +499,11 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
         text = fastTrim(text).replace(/(\s+)/g, ' ');
         maxWidthWithEll = this._showNoEllipses ? maxWidth : (maxWidth - ellipsesWidth);
 
-        if (!hasHTMLTag) {
-            oriTextArr = text.split('');
+        // Checks if any html tag is present. This if block is executed for all normal texts and 
+        // all texts containing only <br /> tag.
+        if (!hasHTMLTag || hasOnlyBrTag) {
+            // Gets splitted array
+            oriTextArr = slLib._getTextArray(text);
             len = oriTextArr.length;
             trimStr = '', tempArr = [];
             tempChar = oriTextArr[0];
@@ -420,9 +516,8 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
                 this._cache[tempChar] = { width: minWidth };
             }
 
-            if (maxWidthWithEll > minWidth) {
+            if (maxWidthWithEll > minWidth && !hasOnlyBrTag) {
                 tempArr = text.substr(0, slLib.getNearestBreakIndex(text, maxWidthWithEll, this)).split('');
-                i = tempArr.length;
             }
             else if (minWidth > maxWidth) {
                 smartLabel.text = '';
@@ -445,12 +540,25 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
                 }
             }
 
+            i = tempArr.length;
             strWidth = getWidth(tempArr.join(''));
             strHeight = this._lineHeight;
 
             if (noWrap) {
                 for (; i < len; i += 1) {
                     tempChar = tempArr[i] = oriTextArr[i];
+
+                    // In case of <br>, reset width to 0 and increase line height
+                    if (tempArr[i] === '<br />') {
+                        strHeight += this._lineHeight;
+                        lastIndexBroken = i;
+                        
+                        maxStrWidth = max(maxStrWidth, strWidth);
+                        strWidth = 0;
+                        trimStr = null;
+                        continue;
+                    }
+
                     if (this._cache[tempChar]) {
                         minWidth = this._cache[tempChar].width;
                     }
@@ -471,23 +579,44 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
                         if (strWidth > maxWidth) {
                             smartLabel.text = fastTrim(trimStr) + ellipsesStr;
                             smartLabel.tooltext = smartLabel.oriText;
-                            smartLabel.width = getWidth(smartLabel.text);
-                            smartLabel.height = this._lineHeight;
+                            smartLabel.width = max(maxStrWidth, strWidth);
+                            smartLabel.height = strHeight;
                             return smartLabel;
                         }
                     }
                 }
 
                 smartLabel.text = tempArr.join('');
-                smartLabel.width = strWidth;
-                smartLabel.height = this._lineHeight;
+                smartLabel.width = max(maxStrWidth, strWidth);
+                smartLabel.height = strHeight;
                 return smartLabel;
 
             } else {
                 for (; i < len; i += 1) {
                     tempChar = tempArr[i] = oriTextArr[i];
                     if (tempChar === ' ' && !context) {
-                        tempChar = '&nbsp;';
+                        tempChar = this.ctx ? ' ' : '&nbsp;';
+                    }
+
+                    // In case of <br>, reset width to 0 and increase line height
+                    if (tempArr[i] === '<br />') {
+                        maxStrWidth = max(maxStrWidth, strWidth);
+                        strHeight += this._lineHeight;
+                        if (strHeight <= maxHeight) {
+                            // If the totalHeight is less than allowed height, continue.
+                            lastIndexBroken = i;
+                            strWidth = 0;
+                            trimStr = null;
+                            continue;
+                        } else if (strHeight > maxHeight) {
+                            // Else return by truncating the text and attaching ellipses.
+                            trimStr = tempArr.slice(0, -1).join('');
+                            smartLabel.text = fastTrim(trimStr) + ellipsesStr;
+                            smartLabel.tooltext = toolText;
+                            smartLabel.width = maxStrWidth;
+                            smartLabel.height = strHeight - this._lineHeight;
+                            return smartLabel;
+                        }
                     }
 
                     if (this._cache[tempChar]) {
@@ -509,28 +638,32 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
                             trimStr = tempArr.slice(0, -1).join('');
                         }
                         if (strWidth > maxWidth) {
+                            // do not perform any line break operation if next character is a break tag
+                            if (oriTextArr[i + 1] === '<br />') {
+                                continue;
+                            }
                             /** @todo use regular expressions for better performance. */
-                            lastSpace = text.substr(0, tempArr.length).lastIndexOf(' ');
-                            lastDash = text.substr(0, tempArr.length).lastIndexOf('-');
+                            lastSpace = slLib._findLastIndex(oriTextArr.slice(0, tempArr.length), ' ');
+                            lastDash = slLib._findLastIndex(oriTextArr.slice(0, tempArr.length), '-');
                             if (lastSpace > lastIndexBroken) {
                                 strWidth = getWidth(tempArr.slice(lastIndexBroken + 1, lastSpace).join(''));
-                                tempArr.splice(lastSpace, 1, '<br/>');
+                                tempArr.splice(lastSpace, 1, '<br />');
                                 lastIndexBroken = lastSpace;
                                 newCharIndex = lastSpace + 1;
                             } else if (lastDash > lastIndexBroken) {
                                 if (lastDash === tempArr.length - 1) {
                                     strWidth =
                                         getWidth(tempArr.slice(lastIndexBroken + 1, lastSpace).join(''));
-                                    tempArr.splice(lastDash, 1, '<br/>-');
+                                    tempArr.splice(lastDash, 1, '<br />-');
                                 } else {
                                     strWidth =
                                         getWidth(tempArr.slice(lastIndexBroken + 1, lastSpace).join(''));
-                                    tempArr.splice(lastDash, 1, '-<br/>');
+                                    tempArr.splice(lastDash, 1, '-<br />');
                                 }
                                 lastIndexBroken = lastDash;
                                 newCharIndex = lastDash + 1;
                             } else {
-                                tempArr.splice((tempArr.length - 1), 1, '<br/>' + oriTextArr[i]);
+                                tempArr.splice((tempArr.length - 1), 1, '<br />' + oriTextArr[i]);
                                 lastLineBreak = tempArr.length - 2;
                                 strWidth = getWidth(tempArr.slice(lastIndexBroken + 1,
                                     lastLineBreak + 1).join(''));
@@ -548,17 +681,22 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
                             } else {
                                 maxStrWidth = max(maxStrWidth, strWidth);
                                 trimStr = null;
-                                nearestChar =
+                                if (!hasOnlyBrTag) {
+                                    nearestChar =
                                     slLib.getNearestBreakIndex(text.substr(newCharIndex), maxWidthWithEll, this);
-                                strWidth = getWidth(text.substr(newCharIndex, nearestChar || 1));
-                                if (tempArr.length < newCharIndex + nearestChar) {
-                                    tempArr = tempArr.concat(
-                                        text.substr(
-                                            tempArr.length,
-                                            newCharIndex + nearestChar - tempArr.length
-                                        ).split('')
-                                    );
-                                    i = tempArr.length - 1;
+                                    strWidth = getWidth(text.substr(newCharIndex, nearestChar || 1));
+                                    if (tempArr.length < newCharIndex + nearestChar) {
+                                        tempArr = tempArr.concat(
+                                            text.substr(
+                                                tempArr.length,
+                                                newCharIndex + nearestChar - tempArr.length
+                                            ).split('')
+                                        );
+                                        i = tempArr.length - 1;
+                                    }
+                                } else {
+                                    // take the width already taken in the new line.
+                                    strWidth = slLib._getDimentionOfMultiLineText(tempArr.slice(lastIndexBroken + 1).join(''), this).width;
                                 }
                             }
                         }
@@ -609,9 +747,10 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
 
             i = 0;
             len = characterArr.length;
-            minWidth = characterArr[0].elem.offsetWidth;
+            // if character array is not generated
+            minWidth = len && characterArr[0].elem.offsetWidth;
 
-            if (minWidth > maxWidth) {
+            if (minWidth > maxWidth || !len) {
                 smartLabel.text = '';
                 smartLabel.width = smartLabel.oriTextWidth = smartLabel.height = smartLabel.oriTextHeight = 0;
 
@@ -769,9 +908,15 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
  *                  }
  *                  If detailedCalculationFlag is set to false the returned object wont have the detailObj prop.
  */
-SmartLabelManager.prototype.getOriSize = function (text, detailedCalculationFlag) {
+SmartLabelManager.prototype.getOriSize = function (text = '', detailedCalculationFlag = true, config = {}) {
     if (!this._init) {
         return false;
+    }
+
+    if (text === undefined || text === null) {
+        text = '';
+    } else if (typeof text !== 'string') {
+        text = text.toString();
     }
 
     var textArr,
@@ -781,17 +926,46 @@ SmartLabelManager.prototype.getOriSize = function (text, detailedCalculationFlag
         l,
         cumulativeSize = 0,
         height = 0,
-        indiSizeStore = { };
+        container,
+        indiSizeStore = { },
+        hasHTMLTag = config.hasHTMLTag,
+        hasOnlyBrTag = config.hasOnlyBrTag;
 
+    typeof hasHTMLTag === 'undefined' && (hasHTMLTag = slLib.xmlTagRegEx.test(text));
+    typeof hasOnlyBrTag === 'undefined' && (hasOnlyBrTag = slLib._hasOnlyBRTag(text));
+    
+    this.requireDiv = (hasHTMLTag && !hasOnlyBrTag);
+    if (!config.cleanText) {
+        text = text.replace(slLib.ltgtRegex, function (match) {
+            return match === '&lt;' ? '<' : '>';
+        });
+    }
+    this._updateStyle();
+    container = this._container;
+    // If text has br tag, return the width and height with proper calculations
+    if (hasOnlyBrTag) {
+        return slLib._getDimentionOfMultiLineText(text, this);
+    }
+
+    // When text is normal text
     if (!detailedCalculationFlag) {
         return this._calCharDimWithCache(text);
+    }
+
+    // text contains html tags other than br
+    if (hasHTMLTag) {
+        container.innerHTML = text;
+        return {
+            width: container.offsetWidth,
+            height: container.offsetHeight
+        };
     }
 
     // Calculate the width of every letter with an approximation
     textArr = text.split('');
     for (i = 0, l = textArr.length; i < l; i++) {
         letter = textArr[i];
-        lSize = this._calCharDimWithCache(letter, true, textArr.length);
+        lSize = this._calCharDimWithCache(letter, false, textArr.length);
         height = max(height, lSize.height);
         cumulativeSize += lSize.width;
         indiSizeStore[letter] = lSize.width;

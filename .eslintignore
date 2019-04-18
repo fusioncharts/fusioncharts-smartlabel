@@ -1,7 +1,10 @@
 .publish/*
 dist/*
+build/*
 example/dist/*
 lib/*
 node_modules/*
 _build/*
 coverage/*
+es/*
+test/*

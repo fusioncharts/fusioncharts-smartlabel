@@ -4,10 +4,15 @@
 		"browser": true,
 		"node": true
 	},
+	"parserOptions": {
+		"ecmaFeatures": {
+			"jsx": true
+		}
+	},
 	"plugins": [
 		"react"
 	],
-	"extends": "eslint:recommended",
+	"extends": ["eslint:recommended", "plugin:react/recommended"],
 	"rules": {
 		"no-use-before-define": 1,
 		"camelcase": 1,
@@ -16,6 +21,10 @@
 		"no-mixed-spaces-and-tabs": 0,
 		"no-cond-assign": 0,
 		"block-scoped-var": 0,
-		"semi": 1
+		"no-useless-escape": 0,
+		"semi": 1,
+		"react/no-deprecated": 0,
+		"react/prop-types": 0,
+		"react/no-find-dom-node": 0
 	}
 }
