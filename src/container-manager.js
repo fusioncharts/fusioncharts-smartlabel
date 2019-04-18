@@ -49,11 +49,20 @@ ContainerManager.prototype.get = function (style) {
 
     if (containerObj = containers[keyStr]) {
         if (this.first !== containerObj) {
-            containerObj.prev && (containerObj.prev.next = containerObj.next);
-            containerObj.next && (containerObj.next.prev = containerObj.prev);
+            if (containerObj.prev) {
+                containerObj.prev.next = containerObj.next;
+            }
+            if (containerObj.next) {
+                containerObj.next.prev = containerObj.prev;
+            }
+            // containerObj.prev && (containerObj.prev.next = containerObj.next);
+            // containerObj.next && (containerObj.next.prev = containerObj.prev);
             containerObj.next = this.first;
             containerObj.next.prev = containerObj;
-            (this.last === containerObj) && (this.last = containerObj.prev);
+            if (this.last === containerObj) {
+                this.last = containerObj.prev;
+            }
+            // (this.last === containerObj) && (this.last = containerObj.prev);
             containerObj.prev = null;
             this.first = containerObj;
         }
@@ -140,7 +149,9 @@ ContainerManager.prototype.addContainer = function (keyStr) {
     // Since the container objects are arranged from most recent to least recent order, we need to add the new
     // object at the beginning of the list.
     container.next = this.first;
-    container.next && (container.next.prev = container);
+    if (container.next) {
+        container.next.prev = container;
+    }
     this.first = container;
     if (!this.last) {
         (this.last = container);
@@ -158,12 +169,22 @@ ContainerManager.prototype.removeContainer = function (cObj) {
     }
     this.length -= 1;
 
-    cObj.prev && (cObj.prev.next = cObj.next);
-    cObj.next && (cObj.next.prev = cObj.prev);
-    (this.first === cObj) && (this.first = cObj.next);
-    (this.last === cObj) && (this.last = cObj.prev);
+    if (cObj.prev) {
+        cObj.prev.next = cObj.next;
+    }
+    if (cObj.next) {
+        cObj.next.prev = cObj.prev;
+    }
+    if (this.first === cObj) {
+        this.first = cObj.next;
+    }
+    if (this.last === cObj) {
+        this.last = cObj.prev;
+    }
 
-    cObj.node && cObj.node.parentNode.removeChild(cObj.node);
+    if (cObj.node) {
+        cObj.node.parentNode.removeChild(cObj.node);
+    }
     
     delete this.containers[keyStr];
 };

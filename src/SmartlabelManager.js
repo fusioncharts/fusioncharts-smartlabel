@@ -111,13 +111,15 @@ SmartLabelManager.prototype._calCharDimWithCache = function (text = '', calculat
         cacheName,
         cacheInitName;
 
-        cache = this._advancedCache = this._advancedCache || (this._advancedCache = {}),
-        advancedCacheKey = this._advancedCacheKey || (this._advancedCacheKey = []),
-        cacheName = text + style.fontSize + style.fontFamily + style.fontWeight + style.fontStyle,
+        cache = this._advancedCache = this._advancedCache || (this._advancedCache = {});
+        advancedCacheKey = this._advancedCacheKey || (this._advancedCacheKey = []);
+        cacheName = text + style.fontSize + style.fontFamily + style.fontWeight + style.fontStyle;
         cacheInitName = text + 'init' + style.fontSize + style.fontFamily +
            style.fontWeight + style.fontStyle;
 
-    !this.ctx && htmlSplCharSpace[text] && (text = htmlSplCharSpace[text]);
+    if (!this.ctx && htmlSplCharSpace[text]) {
+        text = htmlSplCharSpace[text];
+    }
 
     if (!calculateDifference) {
         asymmetricDifference = 0;
@@ -271,7 +273,9 @@ SmartLabelManager.prototype._setStyleOfDiv = function () {
         style = this.style;
 
     this._containerObj = sCont = this._containerManager.get(style);
-    !sCont.node && this._containerManager._makeDivNode(this._containerObj);
+    if (!sCont.node) {
+        this._containerManager._makeDivNode(this._containerObj);
+    }
 
     if (this._containerObj) {
         this._container = sCont.node;
@@ -505,7 +509,8 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
             // Gets splitted array
             oriTextArr = slLib._getTextArray(text);
             len = oriTextArr.length;
-            trimStr = '', tempArr = [];
+            trimStr = '';
+            tempArr = [];
             tempChar = oriTextArr[0];
 
             if (this._cache[tempChar]) {
@@ -931,9 +936,13 @@ SmartLabelManager.prototype.getOriSize = function (text = '', detailedCalculatio
         hasHTMLTag = config.hasHTMLTag,
         hasOnlyBrTag = config.hasOnlyBrTag;
 
-    typeof hasHTMLTag === 'undefined' && (hasHTMLTag = slLib.xmlTagRegEx.test(text));
-    typeof hasOnlyBrTag === 'undefined' && (hasOnlyBrTag = slLib._hasOnlyBRTag(text));
-    
+    if (typeof hasHTMLTag === 'undefined') {
+        hasHTMLTag = slLib.xmlTagRegEx.test(text);
+    }
+    if (typeof hasOnlyBrTag === 'undefined') {
+        hasOnlyBrTag = slLib._hasOnlyBRTag(text);
+    }
+
     this.requireDiv = (hasHTMLTag && !hasOnlyBrTag);
     if (!config.cleanText) {
         text = text.replace(slLib.ltgtRegex, function (match) {
@@ -986,7 +995,9 @@ SmartLabelManager.prototype.dispose = function () {
         return this;
     }
 
-    this._containerManager && this._containerManager.dispose && this._containerManager.dispose();
+    if (this._containerManager && this._containerManager.dispose) {
+        this._containerManager.dispose();
+    }
 
     delete this._container;
     delete this._context;

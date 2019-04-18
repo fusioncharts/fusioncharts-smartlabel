@@ -15,6 +15,7 @@
 	"extends": ["eslint:recommended", "plugin:react/recommended"],
 	"rules": {
 		"no-use-before-define": 1,
+		"no-unused-expressions":"error",
 		"camelcase": 1,
 		"new-cap": 1,
 		"one-var": 1,
