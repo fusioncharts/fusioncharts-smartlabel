@@ -56,8 +56,6 @@ To Create a new instance
  * If a bound box is defined it wraps the text and returns the wrapped height and width.
  * It allows to append ellipsis at the end if the text is truncated.
  *
- * @param {String | Number} id - Id of the instance. If the same id is passed, it disposes the old instance and
- *                              save the new one;
  * @param {String | HTMLElement} container - The id or the instance of the container where the intermediate dom
  *                              elements are to be attached. If not passed, it appends in body.
  *
@@ -68,7 +66,7 @@ To Create a new instance
  *                          }
  * @constructor
  */
-var slManager =  new SmartLabelManager(id, container, useEllipses, options)
+var slManager =  new SmartLabelManager(container, useEllipses, options)
 ```
 
 To apply style before calculating text metrics

@@ -8,8 +8,7 @@ module.exports = function(config) {
 
 
     files: [
-      '_build/common.js',
-      '_build/fusioncharts-smartlabel.js',  
+      'dist/fusioncharts-smartlabel.js',
       'test/**/*.js'
     ],
 
@@ -21,7 +20,7 @@ module.exports = function(config) {
 
 
     preprocessors: {
-        '_build/fusioncharts-smartlabel.js': ['coverage']
+        'dist/fusioncharts-smartlabel.js': ['coverage']
     },
 
     coverageReporter: {

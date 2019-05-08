@@ -1,9 +1,7 @@
 /* global chai, describe, it, before */
-
 'use strict';
 
-var	expect = chai.expect,
-	SmartLabelManager = require('fusioncharts-smartlabel');
+var	expect = chai.expect;
 
 describe('SmartLabelManager', function () {
 	var sl;
@@ -116,7 +114,7 @@ describe('SmartLabelManager', function () {
 		function () {
 			var smartlabel = sl.getSmartText('a quick brown fox over the lazy dog', 80, 50);
 
-			expect(smartlabel.text).to.equal('a quick<br/>brown f');
+			expect(smartlabel.text).to.equal('a quick<br />brown f');
 		});
 
 
@@ -130,11 +128,13 @@ describe('SmartLabelManager', function () {
 
 	it('truncates the text correctly without wrapping with ellipses',
 		function () {
-			var smartlabel = sl
+			var text = 'a quick brown fox over the lazy dog',
+				smartlabel = sl
 				.useEllipsesOnOverflow(true)
 				.getSmartText('a quick brown fox over the lazy dog', 80, 50, true);
 
-			expect(smartlabel.text).to.equal('a qui...');
+			expect(smartlabel.text.length).to.be.within(8, 9);
+			expect(smartlabel.text.substr(smartlabel.text.length - 3)).to.be.equal('...');
 		});
 
 

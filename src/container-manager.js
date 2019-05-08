@@ -1,6 +1,6 @@
 import lib from './lib';
 
-var slLib = lib.init(typeof window !== "undefined" ? window : this),
+var slLib = lib.init(window),
     doc = slLib.win.document,
     documentSupport = slLib.getDocumentSupport(),
     SVG_BBOX_CORRECTION = documentSupport.isWebKit ? 0 : 4.5;
@@ -49,11 +49,20 @@ ContainerManager.prototype.get = function (style) {
 
     if (containerObj = containers[keyStr]) {
         if (this.first !== containerObj) {
-            containerObj.prev && (containerObj.prev.next = containerObj.next);
-            containerObj.next && (containerObj.next.prev = containerObj.prev);
+            if (containerObj.prev) {
+                containerObj.prev.next = containerObj.next;
+            }
+            if (containerObj.next) {
+                containerObj.next.prev = containerObj.prev;
+            }
+            // containerObj.prev && (containerObj.prev.next = containerObj.next);
+            // containerObj.next && (containerObj.next.prev = containerObj.prev);
             containerObj.next = this.first;
             containerObj.next.prev = containerObj;
-            (this.last === containerObj) && (this.last = containerObj.prev);
+            if (this.last === containerObj) {
+                this.last = containerObj.prev;
+            }
+            // (this.last === containerObj) && (this.last = containerObj.prev);
             containerObj.prev = null;
             this.first = containerObj;
         }
@@ -71,34 +80,16 @@ ContainerManager.prototype.get = function (style) {
     return containerObj;
 };
 
-ContainerManager.prototype.addContainer = function (keyStr) {
+ContainerManager.prototype._makeDivNode = function (container) {
     var node,
-        container;
+        keyStr = container.keyStr;
 
-    this.containers[keyStr] = container = {
-        next: null,
-        prev: null,
-        node: null,
-        ellipsesWidth: 0,
-        lineHeight: 0,
-        dotWidth: 0,
-        avgCharWidth: 4,
-        keyStr: keyStr,
-        charCache: {}
-    };
-
-    // Since the container objects are arranged from most recent to least recent order, we need to add the new
-    // object at the beginning of the list.
-    container.next = this.first;
-    container.next && (container.next.prev = container);
-    this.first = container;
-    if (!this.last) {
-        (this.last = container);
+    if (!container.node) {
+        container.node = doc.createElement('div');
+        container.node.className = 'fusioncharts-div';
+        this.rootNode.appendChild(container.node);
     }
-    this.length += 1;
-
-    node = container.node = doc.createElement('div');
-    this.rootNode.appendChild(node);
+    node = container.node;
 
     if (documentSupport.isIE && !documentSupport.hasSVG) {
         node.style.setAttribute('cssText', keyStr);
@@ -116,9 +107,13 @@ ContainerManager.prototype.addContainer = function (keyStr) {
     container.avgCharWidth = (node.offsetWidth / 3);
 
     if (documentSupport.isBrowserLess) {
-        node = container.svgText = doc.createElementNS('http://www.w3.org/2000/svg', 'text');
+        if (!container.svgText) {
+            container.svgText = doc.createElementNS('http://www.w3.org/2000/svg', 'text');
+            this.svgRoot.appendChild(node);
+        }
+        node = container.svgText;
         node.setAttribute('style', keyStr);
-        this.svgRoot.appendChild(node);
+        
 
         node.textContent = slLib.testStrAvg; // A test string.
         container.lineHeight = node.getBBox().height;
@@ -135,6 +130,33 @@ ContainerManager.prototype.addContainer = function (keyStr) {
         container.dotWidth = node.offsetWidth;
         node.innerHTML = '';
     }
+};
+ContainerManager.prototype.addContainer = function (keyStr) {
+    var container;
+
+    this.containers[keyStr] = container = {
+        next: null,
+        prev: null,
+        node: null,
+        ellipsesWidth: 0,
+        lineHeight: 0,
+        dotWidth: 0,
+        avgCharWidth: 4,
+        keyStr: keyStr,
+        charCache: {}
+    };
+
+    // Since the container objects are arranged from most recent to least recent order, we need to add the new
+    // object at the beginning of the list.
+    container.next = this.first;
+    if (container.next) {
+        container.next.prev = container;
+    }
+    this.first = container;
+    if (!this.last) {
+        (this.last = container);
+    }
+    this.length += 1;
 
     return container;
 };
@@ -147,12 +169,22 @@ ContainerManager.prototype.removeContainer = function (cObj) {
     }
     this.length -= 1;
 
-    cObj.prev && (cObj.prev.next = cObj.next);
-    cObj.next && (cObj.next.prev = cObj.prev);
-    (this.first === cObj) && (this.first = cObj.next);
-    (this.last === cObj) && (this.last = cObj.prev);
+    if (cObj.prev) {
+        cObj.prev.next = cObj.next;
+    }
+    if (cObj.next) {
+        cObj.next.prev = cObj.prev;
+    }
+    if (this.first === cObj) {
+        this.first = cObj.next;
+    }
+    if (this.last === cObj) {
+        this.last = cObj.prev;
+    }
 
-    cObj.node.parentNode.removeChild(cObj.node);
+    if (cObj.node) {
+        cObj.node.parentNode.removeChild(cObj.node);
+    }
     
     delete this.containers[keyStr];
 };
@@ -173,4 +205,4 @@ ContainerManager.prototype.dispose = function () {
     this.last = null;
 };
 
-module.exports = ContainerManager;
+export default ContainerManager;
