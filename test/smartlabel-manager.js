@@ -3,7 +3,7 @@
 
 var	expect = chai.expect;
 
-describe('SmartLabelManager', function () {
+describe('SmartLabel', function () {
 	var sl;
 
 	it('retains the public API',
@@ -22,7 +22,7 @@ describe('SmartLabelManager', function () {
 
 			for (i = 0, l = apiList.length; i < l; i++) {
 				method = apiList[i];
-				if (!(method in SmartLabelManager.prototype)) {
+				if (!(method in SmartLabel.prototype)) {
 					dirty = true;
 					break;
 				}
@@ -38,7 +38,7 @@ describe('SmartLabelManager', function () {
 
 
 	before(function () {
-		sl = new SmartLabelManager(Math.random());
+		sl = new SmartLabel(Math.random());
 	});
 
 
@@ -216,7 +216,7 @@ describe('SmartLabelManager', function () {
 
 	it('transforms the smarttext in array when wrapped',
 		function () {
-			var smarttext = SmartLabelManager.textToLines(sl
+			var smarttext = SmartLabel.textToLines(sl
 					.getSmartText('AQuickBrownFoxOverTheLazyDog', 40, 1000));
 
 			expect(smarttext.lines.length).to.equal(6);
