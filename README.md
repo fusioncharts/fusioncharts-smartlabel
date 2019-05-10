@@ -41,17 +41,14 @@ SmartLabel provides out of the box features to
 - Add ellipses if the text is truncated
 - Wraps a label in the bound box
 
-To require the SmartLabel
-```javascript
-var SmartLabelManager = require('fusioncharts-smartlabel');
-```
 
 To Create a new instance
 ```javascript
+import SmartLabel from 'fusioncharts-smartlabel'
 /*
- * Create new instance of SmartLabelManager.
+ * Create new instance of SmartLabel.
  *
- * SmartLabelManager controls the lifetime of the execution space where the text's metrics will be calculated.
+ * SmartLabel controls the lifetime of the execution space where the text's metrics will be calculated.
  * This takes a string for a given style and returns the height, width.
  * If a bound box is defined it wraps the text and returns the wrapped height and width.
  * It allows to append ellipsis at the end if the text is truncated.
@@ -66,7 +63,7 @@ To Create a new instance
  *                          }
  * @constructor
  */
-var slManager =  new SmartLabelManager(container, useEllipses, options)
+var sl =  new SmartLabel(container, useEllipses, options)
 ```
 
 To apply style before calculating text metrics
@@ -82,9 +79,9 @@ To apply style before calculating text metrics
  *                          fontStyle / 'font-style'
  *                      }
  *
- * @return {SmartLabelManager} - Current instance of SmartLabelManager
+ * @return {SmartLabel} - Current instance of SmartLabel
  */
-slManager.setStyle(style);
+sl.setStyle(style);
 ```
 
 Decide whether the text would have trailing ellipses if truncated
@@ -94,9 +91,9 @@ Decide whether the text would have trailing ellipses if truncated
  *
  * @param {Boolean} useEllipses - decides if a ellipses to be appended if the text is truncated. Default: false
  *
- * @return {SmartLabelManager} - Current instance of SmartLabelManager
+ * @return {SmartLabel} - Current instance of SmartLabel
  */
-slManager.useEllipsesOnOverflow(useEllipses);
+sl.useEllipsesOnOverflow(useEllipses);
 ```
 
 To get the text bounded by a bound box
@@ -123,7 +120,7 @@ To get the text bounded by a bound box
  *                      text : SMART TEXT
  *                  }
  */
-smartlabel = slManager.getSmartText(text, maxWidth, maxHeight, noWrap);
+smartlabel = sl.getSmartText(text, maxWidth, maxHeight, noWrap);
 ```
 
 To get the lines for a truncated text
@@ -138,8 +135,8 @@ To get the lines for a truncated text
  *
  * @return {Object} - The same object which was passed in the arguments. Also a named property `lines` is set.
  */
- smartlabel = slManager.getSmartText(text, maxWidth, maxHeight, noWrap);
- generalizedSmartlabel = SmartLabelManager.textToLines(smartlabel);
+ smartlabel = sl.getSmartText(text, maxWidth, maxHeight, noWrap);
+ generalizedSmartlabel = SmartLabel.textToLines(smartlabel);
 ```
 
 To get the size of a given text
@@ -160,7 +157,7 @@ To get the size of a given text
  *                  }
  *                  If detailedCalculationFlag is set to false the returned object wont have the detailObj prop.
  */
-size = slManager.getOriSize(text, detailedCalculationFlag);
+size = sl.getOriSize(text, detailedCalculationFlag);
 ```
 
 To dispose the components
@@ -168,7 +165,7 @@ To dispose the components
 /*
  * Dispose the container and object allocated by the smartlabel
  */
-slManager.dispose();
+sl.dispose();
 ```
 
 ## Usage
@@ -193,14 +190,14 @@ Following is the example of how a text is constrained by a bound box.
 text
 	.attr('dy', ".35em");
 
-// Let smartlabelmanger know ellipses is required if the text is truncated.
+// Let smartlabel know ellipses is required if the text is truncated.
 // Get the text restricted by a bound box which has 100px width and 200px height
 smarttext = this.smartlabel
 	.useEllipsesOnOverflow(true)
 	.getSmartText('Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididun', 100, 200);
 
 // Get all the lines in an array. SmartLabel injects <br/> whereever a wrap is required, this conversion is necessary.
-normalizedSL = SmartLabelManager.textToLines(smarttext);
+normalizedSL = SmartLabel.textToLines(smarttext);
 
 // Create tspan. For more than one line create more than one tspan
 tspan = text
