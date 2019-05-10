@@ -1,6 +1,6 @@
 const path = require('path');
 
-let libraryName = 'SmartLabelManager',
+let libraryName = 'SmartLabel',
 	fileName = 'fusioncharts-smartlabel',
 	mode = process.argv[2].slice(2);
 
