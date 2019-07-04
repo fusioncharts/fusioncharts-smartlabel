@@ -44,6 +44,8 @@ var lib = {
 
 			ltgtRegex: /&lt;|&gt;/g,
 
+			nbspRegex: /&nbsp;/g,
+
 			htmlSpecialEntityRegex: /&amp;|&quot;|&lt;|&gt;/g,
         	
         	brReplaceRegex: /<br\/>/ig,
