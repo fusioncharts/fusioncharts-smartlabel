@@ -426,7 +426,7 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
             isTruncated : false
         };
 
-    hasHTMLTag = slLib.xmlTagRegEx.test(text);
+    hasHTMLTag = slLib.xmlTagRegEx.test(text) || slLib.nbspRegex.test(text);
     hasOnlyBrTag = slLib._hasOnlyBRTag(text);
 
     this.requireDiv = (hasHTMLTag && !hasOnlyBrTag);
@@ -937,7 +937,7 @@ SmartLabelManager.prototype.getOriSize = function (text = '', detailedCalculatio
         hasOnlyBrTag = config.hasOnlyBrTag;
 
     if (typeof hasHTMLTag === 'undefined') {
-        hasHTMLTag = slLib.xmlTagRegEx.test(text);
+        hasHTMLTag = slLib.xmlTagRegEx.test(text) || slLib.nbspRegex.test(text);
     }
     if (typeof hasOnlyBrTag === 'undefined') {
         hasOnlyBrTag = slLib._hasOnlyBRTag(text);
