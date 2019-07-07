@@ -466,7 +466,7 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
                 tmpText = text = text.replace(slLib.ltgtRegex, function (match) {
                     return match === '&lt;' ? '<' : '>';
                 });
-                getOriSizeImproveObj = this.getOriSize(tmpText, true, {
+                getOriSizeImproveObj = this.getSize(tmpText, true, {
                     hasHTMLTag: hasHTMLTag,
                     hasOnlyBrTag: hasOnlyBrTag,
                     cleanText: true
@@ -913,7 +913,7 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
  *                  }
  *                  If detailedCalculationFlag is set to false the returned object wont have the detailObj prop.
  */
-SmartLabelManager.prototype.getOriSize = function (text = '', detailedCalculationFlag = true, config = {}) {
+SmartLabelManager.prototype.getSize = function (text = '', detailedCalculationFlag = true, config = {}) {
     if (!this._init) {
         return false;
     }
@@ -991,12 +991,12 @@ SmartLabelManager.prototype.getOriSize = function (text = '', detailedCalculatio
  * getOriSize API will eventually be deprecated and will be renamed to getSize API. For the next two versions,
  * both getOriSize and getSize API will be supported.
  */
-SmartLabelManager.prototype.getSize = function (text = '', detailedCalculationFlag = true, config = {}) {
+SmartLabelManager.prototype.getOriSize = function (text = '', detailedCalculationFlag = true, config = {}) {
     if (!this._init) {
         return false;
     }
 
-    return this.getOriSize(text, detailedCalculationFlag, config);
+    return this.getSize(text, detailedCalculationFlag, config);
 };
 /*
  * Dispose the container and object allocated by the smartlabel
