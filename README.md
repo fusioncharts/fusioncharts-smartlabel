@@ -157,7 +157,7 @@ To get the size of a given text
  *                  }
  *                  If detailedCalculationFlag is set to false the returned object wont have the detailObj prop.
  */
-size = sl.getOriSize(text, detailedCalculationFlag);
+size = sl.getSize(text, detailedCalculationFlag);
 ```
 
 To dispose the components
