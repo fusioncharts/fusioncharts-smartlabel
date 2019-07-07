@@ -1,6 +1,6 @@
 {
   "name": "fusioncharts-smartlabel",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "SmartLabel component to measure and restrict text in svg / canvas",
   "main": "dist/fusioncharts-smartlabel.min.js",
   "module": "es/SmartlabelManager.js",
