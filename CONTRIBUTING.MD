@@ -6,7 +6,7 @@ Directory       | Summary
 ----------------|---------------------------------------------
 `dist`            | A UMD bundle is built and kept here. This can be included without the need for any build system
 `example`         | Example usage of the component. Github page gets generated from here.
-`lib`             | Contains a transpiled CommonJS version (generated with Babel) of the code for use with node.js
+`es`              | Contains a transpiled CommonJS version (generated with Babel) of the code for use with node.js
 `script`          | CI script
 `src`             | Component source modules
 `test`            | Component test cases
