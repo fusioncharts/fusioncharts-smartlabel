@@ -223,6 +223,17 @@ describe('SmartLabel', function () {
 			expect(smarttext.lines.length).to.equal(6);
 		});
 
+	it('getSize API should always return detailObj', function () {
+		var smarttext,
+			present;
+
+		smarttext = sl.getSize('AAAA');
+		expect(smarttext.hasOwnProperty('detailObj')).to.equal(true);
+		smarttext = sl.getSize('AAA <br> AAA');
+		expect(smarttext.hasOwnProperty('detailObj')).to.equal(true);
+		smarttext = sl.getSize('AAA <div></div> AAA');
+		expect(smarttext.hasOwnProperty('detailObj')).to.equal(true);
+	})
 
 	it('removes the div when disposed',
 		function () {
