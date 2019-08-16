@@ -426,7 +426,7 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
             isTruncated : false
         };
 
-    hasHTMLTag = slLib.xmlTagRegEx.test(text);
+    hasHTMLTag = slLib.xmlTagRegEx.test(text) || slLib.nbspRegex.test(text);
     hasOnlyBrTag = slLib._hasOnlyBRTag(text);
 
     this.requireDiv = (hasHTMLTag && !hasOnlyBrTag);
@@ -466,7 +466,7 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
                 tmpText = text = text.replace(slLib.ltgtRegex, function (match) {
                     return match === '&lt;' ? '<' : '>';
                 });
-                getOriSizeImproveObj = this.getOriSize(tmpText, true, {
+                getOriSizeImproveObj = this.getSize(tmpText, true, {
                     hasHTMLTag: hasHTMLTag,
                     hasOnlyBrTag: hasOnlyBrTag,
                     cleanText: true
@@ -913,7 +913,7 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
  *                  }
  *                  If detailedCalculationFlag is set to false the returned object wont have the detailObj prop.
  */
-SmartLabelManager.prototype.getOriSize = function (text = '', detailedCalculationFlag = true, config = {}) {
+SmartLabelManager.prototype.getSize = function (text = '', detailedCalculationFlag = true, config = {}) {
     if (!this._init) {
         return false;
     }
@@ -937,7 +937,7 @@ SmartLabelManager.prototype.getOriSize = function (text = '', detailedCalculatio
         hasOnlyBrTag = config.hasOnlyBrTag;
 
     if (typeof hasHTMLTag === 'undefined') {
-        hasHTMLTag = slLib.xmlTagRegEx.test(text);
+        hasHTMLTag = slLib.xmlTagRegEx.test(text) || slLib.nbspRegex.test(text);
     }
     if (typeof hasOnlyBrTag === 'undefined') {
         hasOnlyBrTag = slLib._hasOnlyBRTag(text);
@@ -951,14 +951,27 @@ SmartLabelManager.prototype.getOriSize = function (text = '', detailedCalculatio
     }
     this._updateStyle();
     container = this._container;
-    // If text has br tag, return the width and height with proper calculations
-    if (hasOnlyBrTag) {
-        return slLib._getDimentionOfMultiLineText(text, this);
-    }
 
     // When text is normal text
     if (!detailedCalculationFlag) {
         return this._calCharDimWithCache(text);
+    } else {
+        // Calculate the width of every letter with an approximation
+        textArr = text.split('');
+        for (i = 0, l = textArr.length; i < l; i++) {
+            letter = textArr[i];
+            lSize = this._calCharDimWithCache(letter, false, textArr.length);
+            height = max(height, lSize.height);
+            cumulativeSize += lSize.width;
+            indiSizeStore[letter] = lSize.width;
+        }
+    }
+    // If text has br tag, return the width and height with proper calculations
+    if (hasOnlyBrTag) {
+        return {
+            ...slLib._getDimentionOfMultiLineText(text, this),
+            detailObj: indiSizeStore
+        };
     }
 
     // text contains html tags other than br
@@ -966,18 +979,9 @@ SmartLabelManager.prototype.getOriSize = function (text = '', detailedCalculatio
         container.innerHTML = text;
         return {
             width: container.offsetWidth,
-            height: container.offsetHeight
+            height: container.offsetHeight,
+            detailObj: indiSizeStore
         };
-    }
-
-    // Calculate the width of every letter with an approximation
-    textArr = text.split('');
-    for (i = 0, l = textArr.length; i < l; i++) {
-        letter = textArr[i];
-        lSize = this._calCharDimWithCache(letter, false, textArr.length);
-        height = max(height, lSize.height);
-        cumulativeSize += lSize.width;
-        indiSizeStore[letter] = lSize.width;
     }
 
     return {
@@ -987,6 +991,13 @@ SmartLabelManager.prototype.getOriSize = function (text = '', detailedCalculatio
     };
 };
 
+/**
+ * getOriSize API will eventually be deprecated and will be renamed to getSize API. For the next two versions,
+ * both getOriSize and getSize API will be supported.
+ */
+SmartLabelManager.prototype.getOriSize = function (text = '', detailedCalculationFlag = true, config = {}) {
+    return this.getSize(text, detailedCalculationFlag, config);
+};
 /*
  * Dispose the container and object allocated by the smartlabel
  */

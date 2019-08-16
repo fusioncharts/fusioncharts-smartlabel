@@ -16,6 +16,7 @@ describe('SmartLabel', function () {
 					'useEllipsesOnOverflow',
 					'getSmartText',
 					'getOriSize',
+					'getSize',
 					'dispose'
 				],
 				dirty = false;
@@ -85,10 +86,10 @@ describe('SmartLabel', function () {
 
 	it('sets the style properly',
 		function () {
-			var sizeWOStyle = sl.getOriSize('A quick brown fox'),
+			var sizeWOStyle = sl.getSize('A quick brown fox'),
 				sizeWithStyle = sl
 					.setStyle({fontSize: '30px'})
-					.getOriSize('A quick brown fox');
+					.getSize('A quick brown fox');
 
 
 			expect(sizeWOStyle).to.not.deep.equal(sizeWithStyle);
@@ -102,7 +103,7 @@ describe('SmartLabel', function () {
 						fontSize: '20px',
 						fontFamily: 'Verdana'
 					})
-					.getOriSize('a quick brown fox');
+					.getSize('a quick brown fox');
 
 			expect(size.height).to.be.equal(24);
 			// Error value: +-2px
@@ -222,6 +223,17 @@ describe('SmartLabel', function () {
 			expect(smarttext.lines.length).to.equal(6);
 		});
 
+	it('getSize API should always return detailObj', function () {
+		var smarttext,
+			present;
+
+		smarttext = sl.getSize('AAAA');
+		expect(smarttext.hasOwnProperty('detailObj')).to.equal(true);
+		smarttext = sl.getSize('AAA <br> AAA');
+		expect(smarttext.hasOwnProperty('detailObj')).to.equal(true);
+		smarttext = sl.getSize('AAA <div></div> AAA');
+		expect(smarttext.hasOwnProperty('detailObj')).to.equal(true);
+	})
 
 	it('removes the div when disposed',
 		function () {
