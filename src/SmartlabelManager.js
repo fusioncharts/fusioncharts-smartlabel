@@ -586,7 +586,7 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
                             smartLabel.tooltext = smartLabel.oriText;
                             smartLabel.width = max(maxStrWidth, strWidth);
 							smartLabel.height = strHeight;
-							this.smartLabel.isTruncated = true;
+							smartLabel.isTruncated = true;
                             return smartLabel;
                         }
                     }
@@ -621,7 +621,7 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
                             smartLabel.tooltext = toolText;
                             smartLabel.width = maxStrWidth;
 							smartLabel.height = strHeight - this._lineHeight;
-							this.smartLabel.isTruncated = true;
+							smartLabel.isTruncated = true;
                             return smartLabel;
                         }
                     }
@@ -684,7 +684,7 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
                                 // The max width among all the lines will be the width of the string.
                                 smartLabel.width = maxWidth;
 								smartLabel.height = (strHeight - this._lineHeight);
-								this.smartLabel.isTruncated = true;
+								smartLabel.isTruncated = true;
                                 return smartLabel;
                             } else {
                                 maxStrWidth = max(maxStrWidth, strWidth);
