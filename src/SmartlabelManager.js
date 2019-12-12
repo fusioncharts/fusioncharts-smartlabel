@@ -57,7 +57,7 @@ function SmartLabelManager(container, useEllipses, options) {
 
     // Get a context of canvas
     this.ctx = canvas && canvas.getContext && canvas.getContext('2d');
-    
+
     this._containerManager = new ContainerManager(wrapper, isBrowserLess, 10);
     this._showNoEllipses = !useEllipses;
     this._init = true;
@@ -223,7 +223,7 @@ SmartLabelManager.prototype._isSameStyle = function () {
 };
 /**
  * Sets font property of canvas context based on which the width of text is calculated.
- * 
+ *
  * @param {any} style style configuration which affects the text size
  *                      {
  *                          fontSize / 'font-size' : MUST BE FOLLOWED BY PX (10px, 11px)
@@ -448,8 +448,8 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
     /**
      * For canvas lineHeight is directly used. In some cases, lineHeight can be 0.x pixels greater than
      * maxHeight. Previously, div was used to calculate lineHeight and it used to return a rounded number.
-     * 
-     * Adding a buffer of 1px, maxheight will be increased by a factor of 1.2 only when 
+     *
+     * Adding a buffer of 1px, maxheight will be increased by a factor of 1.2 only when
      * 0 <= (lineHeight - maxHeight) <= 1
      */
     if ((lineHeight - maxHeight <= 1) && (lineHeight - maxHeight >= 0)) {
@@ -503,7 +503,7 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
         text = fastTrim(text).replace(/(\s+)/g, ' ');
         maxWidthWithEll = this._showNoEllipses ? maxWidth : (maxWidth - ellipsesWidth);
 
-        // Checks if any html tag is present. This if block is executed for all normal texts and 
+        // Checks if any html tag is present. This if block is executed for all normal texts and
         // all texts containing only <br /> tag.
         if (!hasHTMLTag || hasOnlyBrTag) {
             // Gets splitted array
@@ -557,7 +557,7 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
                     if (tempArr[i] === '<br />') {
                         strHeight += this._lineHeight;
                         lastIndexBroken = i;
-                        
+
                         maxStrWidth = max(maxStrWidth, strWidth);
                         strWidth = 0;
                         trimStr = null;
@@ -585,7 +585,8 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
                             smartLabel.text = fastTrim(trimStr) + ellipsesStr;
                             smartLabel.tooltext = smartLabel.oriText;
                             smartLabel.width = max(maxStrWidth, strWidth);
-                            smartLabel.height = strHeight;
+							smartLabel.height = strHeight;
+							this.smartLabel.isTruncated = true;
                             return smartLabel;
                         }
                     }
@@ -619,7 +620,8 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
                             smartLabel.text = fastTrim(trimStr) + ellipsesStr;
                             smartLabel.tooltext = toolText;
                             smartLabel.width = maxStrWidth;
-                            smartLabel.height = strHeight - this._lineHeight;
+							smartLabel.height = strHeight - this._lineHeight;
+							this.smartLabel.isTruncated = true;
                             return smartLabel;
                         }
                     }
@@ -681,7 +683,8 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
                                 smartLabel.tooltext = smartLabel.oriText;
                                 // The max width among all the lines will be the width of the string.
                                 smartLabel.width = maxWidth;
-                                smartLabel.height = (strHeight - this._lineHeight);
+								smartLabel.height = (strHeight - this._lineHeight);
+								this.smartLabel.isTruncated = true;
                                 return smartLabel;
                             } else {
                                 maxStrWidth = max(maxStrWidth, strWidth);
