@@ -118,6 +118,13 @@ describe('SmartLabel', function () {
 			expect(smartlabel.text).to.equal('a quick<br />brown f');
 		});
 
+	it('checks if isTruncated is set correctly',
+	function () {
+		var smartlabel = sl.getSmartText('a quick brown fox over the lazy dog', 80, 50);
+
+		expect(smartlabel.isTruncate).to.equal(true);
+	});
+
 
 	it('truncates the text correctly without wrapping',
 		function () {
