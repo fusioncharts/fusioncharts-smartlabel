@@ -122,7 +122,7 @@ describe('SmartLabel', function () {
 	function () {
 		var smartlabel = sl.getSmartText('a quick brown fox over the lazy dog', 80, 50);
 
-		expect(smartlabel.isTruncate).to.equal(true);
+		expect(smartlabel.isTruncated).to.equal(true);
 	});
 
 
