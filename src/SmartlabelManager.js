@@ -460,11 +460,22 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
         if (!documentSupport.isBrowserLess) {
 
             if (!hasHTMLTag) {
-                // Due to support of <,> for xml we convert &lt;, &gt; to <,> respectively so to get the correct
+                // Due to support of <,>, ", ' for xml we convert &lt;, &gt;, &quot;, &#034;, &#039; to <, >, ", ", ' respectively so to get the correct
                 // width it is required to convert the same before calculation for the new improve version of the
                 // get text width.
-                tmpText = text = text.replace(slLib.ltgtRegex, function (match) {
-                    return match === '&lt;' ? '<' : '>';
+                tmpText = text = text.replace(slLib.ltgtquotRegex, function (match) {
+                    switch(match){
+                        case '&lt;':
+                            return '<';
+                        case '&gt;':
+                            return '>';
+                        case '&quot;':
+                            return '"';
+                        case '&#034;':
+                            return '"';
+                        case '&#039;':
+                            return '\'';
+                    }
                 });
                 getOriSizeImproveObj = this.getSize(tmpText, true, {
                     hasHTMLTag: hasHTMLTag,
@@ -948,8 +959,19 @@ SmartLabelManager.prototype.getSize = function (text = '', detailedCalculationFl
 
     this.requireDiv = (hasHTMLTag && !hasOnlyBrTag);
     if (!config.cleanText) {
-        text = text.replace(slLib.ltgtRegex, function (match) {
-            return match === '&lt;' ? '<' : '>';
+        text = text.replace(slLib.ltgtquotRegex, function (match) {
+            switch(match){
+                case '&lt;':
+                    return '<';
+                case '&gt;':
+                    return '>';
+                case '&quot;':
+                    return '"';
+                case '&#034;':
+                    return '"';
+                case '&#039;':
+                    return '\'';
+            }
         });
     }
     this._updateStyle();

@@ -42,7 +42,7 @@ var lib = {
 
 			brRegex: new RegExp('({br[ ]*})|(<br[ ]*>)|(<br[ ]*\/>)|(<BR[ ]*\/>)|(<br\\>)', 'g'),
 
-			ltgtRegex: /&lt;|&gt;/g,
+			ltgtquotRegex: /&lt;|&gt;|&quot;|&#034;|&#039;/g,
 
 			nbspRegex: /&nbsp;|&#160;|&#xA0;/g,
 
