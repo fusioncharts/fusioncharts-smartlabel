@@ -4,7 +4,7 @@
   "description": "SmartLabel component to measure and restrict text in svg / canvas",
   "main": "dist/fusioncharts-smartlabel.min.js",
   "module": "es/SmartlabelManager.js",
-  "author": "InfoSoft Global Pvt. Ltd.  &lt;support@fusioncharts.com&gt;",
+  "author": "FusionCharts, Inc.  &lt;support@fusioncharts.com&gt;",
   "contributors": [
     "Akash Goswami",
     "Priyanjit Dey",
