@@ -477,6 +477,30 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
                             return '\'';
                     }
                 });
+                tmpText = tmpText.replace(/<u>/g,'')
+                .replace(/<\/u>/g, '')
+                .replace(/<b>/g,'')
+                .replace(/<\/b>/g, '')
+                .replace(/<strong>/g,'')
+                .replace(/<\/strong>/g, '')
+                .replace(/<em>/g,'')
+                .replace(/<\/em>/g, '')
+                .replace(/<i>/g,'')
+                .replace(/<\/i>/g, '')
+                .replace(/<strike>/g,'')
+                .replace(/<\/strike>/g, '')
+                .replace(/<s>/g,'')
+                .replace(/<\/s>/g, '')
+                .replace(/<del>/g,'')
+                .replace(/<\/del>/g, '')
+                .replace(/<sub>/g,'')
+                .replace(/<\/sub>/g, '')
+                .replace(/<sup>/g,'')
+                .replace(/<\/sup>/g, '')
+                .replace(/<a[\s]+([^>]+)>/g, '')
+                .replace(/<\/a>/g)
+                .replace(/<abbr[\s]+([^>]+)>/g, '')
+                .replace(/<\/abbr>/g);
                 getOriSizeImproveObj = this.getSize(tmpText, true, {
                     hasHTMLTag: hasHTMLTag,
                     hasOnlyBrTag: hasOnlyBrTag,
@@ -519,6 +543,7 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
         if (!hasHTMLTag || hasOnlyBrTag) {
             // Gets splitted array
             oriTextArr = slLib._getTextArray(text);
+            //oriTextArr = slLib._getTextArray(tmpText);
             len = oriTextArr.length;
             trimStr = '';
             tempArr = [];
@@ -534,6 +559,7 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
 
             if (maxWidthWithEll > minWidth && !hasOnlyBrTag) {
                 tempArr = text.substr(0, slLib.getNearestBreakIndex(text, maxWidthWithEll, this)).split('');
+                //tempArr = tmpText.substr(0, slLib.getNearestBreakIndex(tmpText, maxWidthWithEll, this)).split('')
             }
             else if (minWidth > maxWidth) {
                 smartLabel.text = '';
