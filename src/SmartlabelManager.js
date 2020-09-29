@@ -498,9 +498,11 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
                 .replace(/<sup>/g,'')
                 .replace(/<\/sup>/g, '')
                 .replace(/<a[\s]+([^>]+)>/g, '')
-                .replace(/<\/a>/g)
+                .replace(/<\/a>/g, '')
                 .replace(/<abbr[\s]+([^>]+)>/g, '')
-                .replace(/<\/abbr>/g);
+                .replace(/<\/abbr>/g, '')
+                .replace(/<span[\s]+([^>]+)>/g, '')
+                .replace(/<\/span>/g, '');
                 getOriSizeImproveObj = this.getSize(tmpText, true, {
                     hasHTMLTag: hasHTMLTag,
                     hasOnlyBrTag: hasOnlyBrTag,
