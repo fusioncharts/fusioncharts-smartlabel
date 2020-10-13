@@ -271,7 +271,7 @@ function getRemTagIndices(tagIndices, latstIndex) {
 
 }  
 function getRecursiveResultText(resultText, oriText, tempText, _tagIndices, brTagIndex, latstIndex) {
-    var remText, remTagIncides,i, brEndTagindex,
+    var remTagIncides,i, brEndTagindex,
         oricharLength = 0,
         tagIndices = _tagIndices;    
     //remText = oriText.substring(latstIndex, oriText.length);
