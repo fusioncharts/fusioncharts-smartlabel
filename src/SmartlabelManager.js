@@ -311,7 +311,7 @@ function getRecursiveResultText(resultText, oriText, tempText, _tagIndices, brTa
     }
 }  
 function getTagsInBetween(oriText, tempText, brTagIndices, _tagIndices, resultText) {
-    var i,latstIndex, oriSnippet, tempSnippet,newBrIndex,brEndTagindex,j,
+    var i,latstIndex,newBrIndex,brEndTagindex,j,
         tagIndices = _tagIndices,
         oricharLength = 0;
 
@@ -440,7 +440,6 @@ function resolveTags(text) {
     resultObj = {},
     tagIndex,
     textSnippet,
-    resultText = text,
     startIndex = 0,
     tagIndices;
     if(!text) {
@@ -514,8 +513,6 @@ function doMergeTextWithTags(oriText, tempText) {
         tagIndices = getSortedTagIndices(oriText),
         brTagIndices = getSortedBRTagIndices(tempText),
         oribrTagIndices = getSortedBRTagIndices(oriText),
-        tempOritxt = oriText,
-        end = false,
         j,
         i,
         count = 0;
@@ -540,7 +537,6 @@ function doMergeTextWithTags(oriText, tempText) {
                 for(i = 0;i< brTagIndices.length;i++) {
                     count = 0;
                         j = brTagIndices[i].index;
-                        var test = tempText[j];
                         while(tempText[j]!=='>') {
                             count++;
                             j++;
