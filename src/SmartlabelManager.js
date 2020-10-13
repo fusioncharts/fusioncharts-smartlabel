@@ -1547,6 +1547,32 @@ SmartLabelManager.prototype.getSize = function (text = '', detailedCalculationFl
                     return '\'';
             }
         });
+        text = text.replace(/<u>/g,'')
+                .replace(/<\/u>/g, '')
+                .replace(/<b>/g,'')
+                .replace(/<\/b>/g, '')
+                .replace(/<strong>/g,'')
+                .replace(/<\/strong>/g, '')
+                .replace(/<em>/g,'')
+                .replace(/<\/em>/g, '')
+                .replace(/<i>/g,'')
+                .replace(/<\/i>/g, '')
+                .replace(/<strike>/g,'')
+                .replace(/<\/strike>/g, '')
+                .replace(/<s>/g,'')
+                .replace(/<\/s>/g, '')
+                .replace(/<del>/g,'')
+                .replace(/<\/del>/g, '')
+                .replace(/<sub>/g,'')
+                .replace(/<\/sub>/g, '')
+                .replace(/<sup>/g,'')
+                .replace(/<\/sup>/g, '')
+                .replace(/<a[\s]+([^>]+)>/g, '')
+                .replace(/<\/a>/g, '')
+                .replace(/<abbr[\s]+([^>]+)>/g, '')
+                .replace(/<\/abbr>/g, '')
+                .replace(/<span[\s]+([^>]+)>/g, '')
+                .replace(/<\/span>/g, '');
     }
     this._updateStyle();
     container = this._container;
