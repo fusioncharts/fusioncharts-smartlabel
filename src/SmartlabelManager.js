@@ -67,7 +67,503 @@ function SmartLabelManager(container, useEllipses, options) {
 
     this.setStyle();
 }
+function getAbbrTagIndices(abbrRegex, abbrEndRegex, text, tagText, endtagText) {
+    var tagindices = [],
+    result,
+    dummyNode,
+    testAbbr,
+    endtagindices = [];
+    while ( (result = abbrRegex.exec(text)) ) {
+            dummyNode = document.createElement('p');
+            testAbbr = result[0] + 'Dummy</abbr>';
+            dummyNode.innerHTML = testAbbr;
+        tagindices.push({tagName:result[0],index:result.index,title:dummyNode.childNodes[0].title ? dummyNode.childNodes[0].title : '', endTagName: endtagText});
+    }
+    while ( (result = abbrEndRegex.exec(text)) ) {
+        endtagindices.push({tagName:endtagText,index:result.index});
+    }
 
+    return({
+        tag: tagindices,
+        endtag: endtagindices
+    })
+}
+function getStyles(el) {  ///Get Styles as an array of objects
+    var output = {};
+
+    if (!el || !el.style || !el.style.cssText) {
+        return output;
+    }
+
+    var camelize = function camelize(str) {
+        return str.replace (/(?:^|[-])(\w)/g, function (a, c) {
+            c = a.substr(0, 1) === '-' ? c.toUpperCase () : c;
+            return c ? c : '';
+        });
+    }
+
+    var style = el.style.cssText.split(';');
+
+    for (var i = 0; i < style.length; ++i) {
+        var rule = style[i].trim();
+
+        if (rule) {
+            var ruleParts = rule.split(':');
+            var key = camelize(ruleParts[0].trim());
+            output[key] = ruleParts[1].trim();
+        }
+    }
+
+    return output;
+}
+function getSpanTagIndices(spanRegex, spanEndRegex, text, tagText, endtagText) {
+    var tagindices = [],
+    result,
+    dummyNode,
+    testAbbr,
+    styleObj,
+    endtagindices = [];
+    while ( (result = spanRegex.exec(text)) ) {
+            dummyNode = document.createElement('p');
+            testAbbr = result[0] + 'Dummy</span>';
+            dummyNode.innerHTML = testAbbr;
+            styleObj = getStyles(dummyNode.childNodes[0]);
+            tagindices.push({tagName:result[0],index:result.index,style: styleObj ? styleObj : '', endTagName: endtagText});
+    }
+    while ( (result = spanEndRegex.exec(text)) ) {
+        endtagindices.push({tagName:endtagText,index:result.index});
+    }
+
+    return({
+        tag: tagindices,
+        endtag: endtagindices
+    })
+}
+function getAnchorTagIndices(anchorRegex, anchorEndRegex, text, tagText, endtagText) {
+    var tagindices = [],
+    result,
+    dummyNode,
+    testAbbr,
+    endtagindices = [];
+    while ( (result = anchorRegex.exec(text)) ) {
+            dummyNode = document.createElement('p');
+            testAbbr = result[0] + '</a>';
+            dummyNode.innerHTML = testAbbr;
+        tagindices.push({tagName:result[0],index:result.index,href:dummyNode.childNodes[0].href ? dummyNode.childNodes[0].href: '',target:dummyNode.childNodes[0].target ? dummyNode.childNodes[0].target:'',hreflang: dummyNode.childNodes[0].hreflang?dummyNode.childNodes[0].hreflang:'',referrerpolicy: dummyNode.childNodes[0].referrerpolicy ? dummyNode.childNodes[0].referrerpolicy: '',rel:dummyNode.childNodes[0].rel ? dummyNode.childNodes[0].rel : '', endTagName: endtagText});
+    }
+    while ( (result = anchorEndRegex.exec(text)) ) {
+        endtagindices.push({tagName:endtagText,index:result.index});
+    }
+
+    return({
+        tag: tagindices,
+        endtag: endtagindices
+    })
+}
+function getTagIndices(tagRegex, endTagRegex, text, tagText, endtagText) {
+    var tagindices = [],
+     result,
+     endtagindices = [];
+     if(tagRegex) {
+     while ( (result = tagRegex.exec(text)) ) {
+         tagindices.push({tagName:tagText,index:result.index, endTagName: endtagText});
+     }
+    }
+    if(endTagRegex) {
+     while ( (result = endTagRegex.exec(text)) ) {
+         endtagindices.push({tagName:endtagText,index:result.index});
+     }
+    }
+     return({
+         tag: tagindices,
+         endtag: endtagindices
+     })
+ }
+function sortTags(u, b, em, strike,sub, sup, abbr, a, sp, str, it, del, s, br) {
+    var i,j,
+        tagArr = [u, b, em, strike, sub, sup, abbr, a, sp, str, it, del, s, br],
+        res = [];
+    for (j = 0;j< tagArr.length; j++) {
+        for (var key in tagArr[j]) {
+            if(tagArr[j][key].length) {
+                for(i = 0;i<tagArr[j][key].length;i++) {
+                    res.push(tagArr[j][key][i]);
+                }
+            }
+        }
+    }
+    res = res.sort(function(a, b) {
+        return(a.index - b.index)
+    })
+    return res;
+}
+function getSortedBRTagIndices(text) {
+    var  brRegex = /<br\s*\/?>/g,
+         brTagIndices = getTagIndices(brRegex, undefined, text, '<br />', ''),
+         sortedIndices = sortTags({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, brTagIndices);
+         return sortedIndices;
+}
+function getSortedTagIndices(text) {
+    var underlineRegex = /<u>/g,
+                    underlineEndRegex = /<\/u>/g,
+                    boldRegex = /<b>/g,
+                    boldEndRegex = /<\/b>/g,
+                    strongRegex = /<strong>/g,
+                    strongEndRegex = /<\/strong>/g,
+                    emphasisRegex = /<em>/g,
+                    emphasisEndRegex = /<\/em>/g,
+                    italicRegex = /<i>/g,
+                    italicEndRegex = /<\/i>/g,
+                    delRegex = /<del>/g,
+                    delEndRegex = /<\/del>/g,
+                    sRegex = /<s>/g,
+                    sEndRegex = /<\/s>/g,
+                    strikeRegex = /<strike>/g,
+                    strikeEndRegex = /<\/strike>/g,
+                    subscriptRegex = /<sub>/g,
+                    subscriptEndRegex = /<\/sub>/g,
+                    superscriptRegex = /<sup>/g,
+                    superscriptEndRegex = /<\/sup>/g,
+                    abbrRegex = /<abbr[\s]+([^>]+)>/g,
+                    abbrEndRegex = /<\/abbr>/g,
+                    spanRegex = /<span[\s]+([^>]+)>/g,
+                    spanEndRegex = /<\/span>/g,
+                    anchorRegex = /<a[\s]+([^>]+)>/g,
+                    anchorEndRegex = /<\/a>/g,
+                    brRegex = /<br\s*\/?>/g,
+                    underlinetagIndices = getTagIndices(underlineRegex, underlineEndRegex, text, '<u>', '</u>'),
+                    boldtagIndices = getTagIndices(boldRegex, boldEndRegex, text, '<b>', '</b>'),
+                    emtagIndices = getTagIndices(emphasisRegex, emphasisEndRegex, text, '<em>', '</em>'),
+                    strikeTagIndices = getTagIndices(strikeRegex, strikeEndRegex, text, '<strike>', '</strike>'),
+                    subscriptTagIndices = getTagIndices(subscriptRegex, subscriptEndRegex, text, '<sub>', '</sub>'),
+                    superscriptTagIndices = getTagIndices(superscriptRegex, superscriptEndRegex, text, '<sup>', '</sup>'),
+                    abbrTagIndices = getAbbrTagIndices(abbrRegex, abbrEndRegex, text, '<abbr>', '</abbr>'),
+                    anchorTagIndices = getAnchorTagIndices(anchorRegex, anchorEndRegex, text, '<a>', '</a>'),
+                    spanTagIndices = getSpanTagIndices(spanRegex, spanEndRegex, text, '<span>', '</span>'),
+                    strongTagIndices = getTagIndices(strongRegex, strongEndRegex, text, '<strong>', '</strong>'),
+                    italicTagIndices = getTagIndices(italicRegex, italicEndRegex, text, '<i>', '</i>'),
+                    delTagIndices = getTagIndices(delRegex, delEndRegex, text, '<del>', '</del>'),
+                    sTagIndices = getTagIndices(sRegex, sEndRegex, text, '<s>', '</s>'),
+                    brTagIndices = getTagIndices(brRegex, undefined, text, '<br />', ''),
+                    sortedIndices = sortTags(underlinetagIndices, boldtagIndices, emtagIndices, strikeTagIndices, subscriptTagIndices, superscriptTagIndices, abbrTagIndices, anchorTagIndices, spanTagIndices, strongTagIndices, italicTagIndices, delTagIndices, sTagIndices, brTagIndices);
+                    return sortedIndices;
+}
+function spliceSlice(str, index, count, add) {
+    // We cannot pass negative indexes directly to the 2nd slicing operation.
+    if (index < 0) {
+      index = str.length + index;
+      if (index < 0) {
+        index = 0;
+      }
+    }
+  
+    return str.slice(0, index) + (add || "") + str.slice(index + count);
+  }
+function getRemTagIndices(tagIndices, latstIndex) {
+    var arr = [],
+        i;
+        for(i = 0;i<tagIndices.length; i++) {
+            if(tagIndices[i].index >= latstIndex) {
+                arr.push(tagIndices[i]);
+            }
+        }
+        return arr;
+
+}  
+function getRecursiveResultText(resultText, oriText, tempText, _tagIndices, brTagIndex, latstIndex) {
+    var remTagIncides,i, brEndTagindex,
+        oricharLength = 0,
+        tagIndices = _tagIndices;    
+    //remText = oriText.substring(latstIndex, oriText.length);
+    tagIndices = getSortedTagIndices(resultText);
+    remTagIncides = getRemTagIndices(tagIndices, latstIndex);
+    brTagIndex = brTagIndex + oricharLength;
+    brEndTagindex = brTagIndex + 6;
+    if(!remTagIncides.length) {
+        resultText = spliceSlice(resultText, brTagIndex, 0, '<br />');
+        return resultText;
+    } else {
+        for(i = 0;i < remTagIncides.length;i++) {
+            if(remTagIncides[i].index <= brTagIndex) {
+                if((remTagIncides[i].index + remTagIncides[i].tagName.length) < brEndTagindex) {
+                    oricharLength += remTagIncides[i].tagName.length;
+                    latstIndex = (remTagIncides[i].index + remTagIncides[i].tagName.length);
+                } else if((remTagIncides[i].index + remTagIncides[i].tagName.length) >= brEndTagindex) {
+                    oricharLength += remTagIncides[i].tagName.length;
+                    latstIndex = (remTagIncides[i].index + remTagIncides[i].tagName.length);
+                }
+            } else if(remTagIncides[i].index > brTagIndex && remTagIncides[i].index < brEndTagindex) {
+                if((remTagIncides[i].index + remTagIncides[i].tagName.length) < brEndTagindex) {
+                    oricharLength += remTagIncides[i].tagName.length;
+                    latstIndex = (remTagIncides[i].index + remTagIncides[i].tagName.length);
+                } else if((remTagIncides[i].index + remTagIncides[i].tagName.length) > brEndTagindex) {
+                    oricharLength += remTagIncides[i].tagName.length;
+                    latstIndex = (remTagIncides[i].index + remTagIncides[i].tagName.length);
+                }
+            }
+        }
+        if(oricharLength > 0) {
+            resultText = getRecursiveResultText(resultText, oriText, tempText, tagIndices, brTagIndex + oricharLength + 1, latstIndex);
+        } else {
+            return (spliceSlice(resultText, brTagIndex, 0, '<br />'))
+        }
+        return resultText;
+    }
+}  
+function getTagsInBetween(oriText, tempText, brTagIndices, _tagIndices, resultText) {
+    var i,latstIndex,newBrIndex,brEndTagindex,j,
+        tagIndices = _tagIndices,
+        oricharLength = 0;
+
+    if(brTagIndices.length === 1) {
+        brEndTagindex = brTagIndices[0].index + 6; 
+        for(i = 0;i < tagIndices.length;i++) {
+            if(tagIndices[i].index <= brTagIndices[0].index) {
+                if((tagIndices[i].index + tagIndices[i].tagName.length) < brEndTagindex) {
+                    oricharLength += tagIndices[i].tagName.length;
+                    latstIndex = (tagIndices[i].index + tagIndices[i].tagName.length);
+                } else if((tagIndices[i].index + tagIndices[i].tagName.length) >= brEndTagindex) {
+                    oricharLength += tagIndices[i].tagName.length;
+                    latstIndex = (tagIndices[i].index + tagIndices[i].tagName.length);
+                }
+            } else if(tagIndices[i].index > brTagIndices[0].index && tagIndices[i].index < brEndTagindex) {
+                if((tagIndices[i].index + tagIndices[i].tagName.length) < brEndTagindex) {
+                    oricharLength += tagIndices[i].tagName.length;
+                    latstIndex = (tagIndices[i].index + tagIndices[i].tagName.length);
+                } else if((tagIndices[i].index + tagIndices[i].tagName.length) > brEndTagindex) {
+                    oricharLength += tagIndices[i].tagName.length;
+                    latstIndex = (tagIndices[i].index + tagIndices[i].tagName.length);
+                }
+            }
+        }
+
+        resultText = getRecursiveResultText(resultText, oriText, tempText, tagIndices, (brTagIndices[0].index + oricharLength), latstIndex);
+        return resultText;
+    } else if(brTagIndices.length > 1) {
+        oricharLength = 0;
+        for(j = 0;j < brTagIndices.length; j++) {
+            tagIndices = getSortedTagIndices(resultText);
+            //newBrIndex = brTagIndices[j].index + oricharLength;
+            oricharLength = 0;
+           // brEndTagindex = newBrIndex + 5; 
+           brEndTagindex = brTagIndices[j].index + 6;
+            for(i = 0; i < tagIndices.length; i++) {
+                if(tagIndices[i].index <= brTagIndices[j].index) {
+                    if((tagIndices[i].index + tagIndices[i].tagName.length) < brEndTagindex) {
+                        oricharLength += tagIndices[i].tagName.length;
+                        latstIndex = (tagIndices[i].index + tagIndices[i].tagName.length);
+                    } else if((tagIndices[i].index + tagIndices[i].tagName.length) >= brEndTagindex) {
+                        oricharLength += tagIndices[i].tagName.length;
+                        latstIndex = (tagIndices[i].index + tagIndices[i].tagName.length);
+                    }
+                } else if(tagIndices[i].index > brTagIndices[j].index && tagIndices[i].index < brEndTagindex) {
+                    if((tagIndices[i].index + tagIndices[i].tagName.length) < brEndTagindex) {
+                        oricharLength += tagIndices[i].tagName.length;
+                        latstIndex = (tagIndices[i].index + tagIndices[i].tagName.length);
+                    } else if((tagIndices[i].index + tagIndices[i].tagName.length) > brEndTagindex) {
+                        oricharLength += tagIndices[i].tagName.length;
+                        latstIndex = (tagIndices[i].index + tagIndices[i].tagName.length);
+                    }
+                }
+            }
+            newBrIndex = brTagIndices[j].index + oricharLength + 1;
+            if(j > 0) {
+                newBrIndex -= (j * 6);
+            }
+            resultText = getRecursiveResultText(resultText, oriText, tempText, tagIndices, newBrIndex, latstIndex);
+        }
+        return resultText;
+    }
+}
+function getResolvedTags(text, tagIndices, brTagIndex, charOffset) {
+    var i,startPtr, endPtr,
+        resultText = text,
+        newBrIndex = brTagIndex.index,
+        beforeTagindex = brTagIndex.index,
+        afterTagindex = brTagIndex.index + 6;
+    if(!tagIndices.length) {
+        return {text : text, charOffset: charOffset};
+    }
+    startPtr = 0;
+    endPtr = tagIndices.length - 1;
+    if(tagIndices[startPtr].endTagName) {
+        afterTagindex = beforeTagindex + tagIndices[startPtr].endTagName.length + 6;
+    }
+    while(startPtr <= endPtr) {
+        if(tagIndices[startPtr].endTagName) {
+            if(startPtr === endPtr) {
+                resultText = spliceSlice(resultText, beforeTagindex, 0, tagIndices[startPtr].endTagName);
+                resultText = spliceSlice(resultText, afterTagindex, 0, tagIndices[startPtr].tagName);
+                //resultText = spliceSlice(resultText, beforeTagindex + tagIndices[startPtr].endTagName.length + 6, 0, tagIndices[startPtr].tagName);
+                newBrIndex = newBrIndex + tagIndices[startPtr].endTagName.length;
+                beforeTagindex = newBrIndex - tagIndices[startPtr].endTagName.length;
+                afterTagindex = ((newBrIndex + tagIndices[startPtr].endTagName.length + 6)+tagIndices[startPtr].tagName.length);
+                charOffset += tagIndices[startPtr].endTagName.length;
+                charOffset += tagIndices[startPtr].tagName.length;
+                startPtr ++;
+                endPtr --;
+            } else if(tagIndices[startPtr].endTagName !== tagIndices[endPtr].tagName) {
+
+                for (i = startPtr; i <= endPtr ;i++) {
+                    if(tagIndices[i + 1]) {
+                        if(tagIndices[startPtr].endTagName === tagIndices[i + 1].tagName) {
+                            startPtr = i + 2;
+                            break;
+                        }
+                    }
+                }
+                if(i > endPtr) {
+                    resultText = spliceSlice(resultText, beforeTagindex, 0, tagIndices[startPtr].endTagName);
+                    resultText = spliceSlice(resultText, (beforeTagindex + tagIndices[startPtr].endTagName.length + 6), 0, tagIndices[startPtr].tagName);
+                    newBrIndex = newBrIndex + tagIndices[startPtr].endTagName.length;
+                    beforeTagindex = newBrIndex - tagIndices[startPtr].endTagName.length;
+                    afterTagindex = ((newBrIndex + tagIndices[startPtr].endTagName.length + 6)+tagIndices[startPtr].tagName.length);
+                    charOffset += tagIndices[startPtr].endTagName.length;
+                    charOffset += tagIndices[startPtr].tagName.length;
+                    startPtr++;
+                }
+            } else {
+                startPtr++;
+                endPtr--;
+            }
+        } else {
+            startPtr++;
+            endPtr--;
+        }
+    }
+    return {text: resultText, charOffset: charOffset, newBrIndex : newBrIndex};
+}
+function resolveTags(text) {
+    var brTagIndices = getSortedBRTagIndices(text),
+    i,
+    charOffset = 0,
+    resultObj = {},
+    tagIndex,
+    textSnippet,
+    startIndex = 0,
+    tagIndices;
+    if(!text) {
+        return '';
+    }
+    if(!brTagIndices.length) {
+        return text;
+    }
+    tagIndex = brTagIndices[0].index;
+    for(i = 0;i < brTagIndices.length; i++) {
+        if(resultObj.charOffset && resultObj.charOffset > 0) {
+            tagIndex = brTagIndices[i].index + resultObj.charOffset;
+            brTagIndices[i].index = tagIndex;
+            //startIndex = startIndex + resultObj.charOffset;
+        }
+        else {
+            tagIndex = brTagIndices[i].index;
+        }
+        textSnippet = text.substring(startIndex, tagIndex);
+        tagIndices = getSortedTagIndices(textSnippet);
+        resultObj = getResolvedTags(text, tagIndices, brTagIndices[i], charOffset);
+        if(resultObj.newBrIndex) {
+            startIndex = resultObj.newBrIndex + 6;
+        }
+        text = resultObj.text;
+    }
+    return text;
+}
+function resolveSingleLineText(text, tagIndices) {
+    var i,
+        startPtr = 0,
+        resultText = text,
+        endPtr = tagIndices.length - 1,
+        strEnd = text.length;
+    if(!tagIndices.length) {
+        return text;
+    }
+    while(startPtr <= endPtr) {
+        if(tagIndices[startPtr].endTagName) {
+        if (startPtr === endPtr) {
+                resultText = spliceSlice(resultText, strEnd, 0, tagIndices[startPtr].endTagName);
+                startPtr ++;
+                endPtr --;
+        } else if(tagIndices[startPtr].endTagName !== tagIndices[endPtr].tagName) {
+
+            for (i = startPtr; i <= endPtr ;i++) {
+                if(tagIndices[i + 1]) {
+                    if(tagIndices[startPtr].endTagName === tagIndices[i + 1].tagName) {
+                        startPtr = i + 2;
+                        break;
+                    }
+                }
+            }
+            if(i > endPtr) {
+                resultText = spliceSlice(resultText, strEnd, 0, tagIndices[startPtr].endTagName);
+                startPtr++;
+            }
+        } else {
+            startPtr++;
+            endPtr--;
+        }
+    } else {
+        startPtr++;
+        endPtr--;
+    }
+    }
+    return resultText;
+}
+function doMergeTextWithTags(oriText, tempText) {
+    var resultText = oriText,
+        tagIndices = getSortedTagIndices(oriText),
+        brTagIndices = getSortedBRTagIndices(tempText),
+        oribrTagIndices = getSortedBRTagIndices(oriText),
+        j,
+        i,
+        count = 0;
+        if(oriText === tempText) {
+            return oriText;
+        }
+        if(oribrTagIndices.length) {
+            for(i = 0;i< oribrTagIndices.length;i++) {
+                count = 0;
+                    j = oribrTagIndices[i].index;
+                    while(oriText[j]!=='>') {
+                        count++;
+                        j++;
+                    }
+                    oriText = spliceSlice(oriText, oribrTagIndices[i].index, count+1, '');
+                    if(oribrTagIndices[i + 1]) {
+                        oribrTagIndices[i + 1].index -= (count + 1);
+                    }
+                //tempOritxt = resolveOriBrTags(oriText, oribrTagIndices[i]);
+            }
+            if(brTagIndices.length) {
+                for(i = 0;i< brTagIndices.length;i++) {
+                    count = 0;
+                        j = brTagIndices[i].index;
+                        while(tempText[j]!=='>') {
+                            count++;
+                            j++;
+                        }
+                        tempText = spliceSlice(tempText, brTagIndices[i].index, count+1, '<br />')
+                        if(brTagIndices[i + 1]) {
+                            brTagIndices[i + 1].index -= (count + 1);
+                            brTagIndices[i + 1].index += 6;
+                        }
+                    //tempOritxt = resolveOriBrTags(oriText, oribrTagIndices[i]);
+                }
+            }
+            resultText = oriText;
+            tagIndices = getSortedTagIndices(oriText);
+            brTagIndices = getSortedBRTagIndices(tempText);   
+        }
+        if(!tagIndices.length) {
+            return tempText;
+        } else if(!brTagIndices.length) {
+            return resolveSingleLineText(oriText, tagIndices);  ///Todo sanitise this to include end tags and check for br from user
+        } else {
+            resultText = getTagsInBetween(oriText, tempText, brTagIndices, tagIndices, resultText);
+            resultText = resolveTags(resultText);
+        }
+        return resultText;
+    
+}
 /*
  * getSmartText returns the text separated by <br/> whenever a break is necessary. This is to recgonize one
  * generalized format independent of the implementation (canvas based solution, svg based solution). This method
@@ -393,7 +889,9 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
         strWidth = 0,
         strHeight = 0,
         oriTextArr = [],
+        resolvedText = '',
         i = 0,
+        originalText,
         ellipsesStr = (this._showNoEllipses ? '' : '...'),
         lineHeight,
         context,
@@ -458,7 +956,47 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
 
     if (canvas || container) {
         if (!documentSupport.isBrowserLess) {
-
+            tmpText = text = text.replace(slLib.ltgtquotRegex, function (match) {
+                switch(match){
+                    case '&lt;':
+                        return '<';
+                    case '&gt;':
+                        return '>';
+                    case '&quot;':
+                        return '"';
+                    case '&#034;':
+                        return '"';
+                    case '&#039;':
+                        return '\'';
+                }
+            });
+            originalText = text;
+            tmpText = text = tmpText.replace(/<u>/g,'')
+                .replace(/<\/u>/g, '')
+                .replace(/<b>/g,'')
+                .replace(/<\/b>/g, '')
+                .replace(/<strong>/g,'')
+                .replace(/<\/strong>/g, '')
+                .replace(/<em>/g,'')
+                .replace(/<\/em>/g, '')
+                .replace(/<i>/g,'')
+                .replace(/<\/i>/g, '')
+                .replace(/<strike>/g,'')
+                .replace(/<\/strike>/g, '')
+                .replace(/<s>/g,'')
+                .replace(/<\/s>/g, '')
+                .replace(/<del>/g,'')
+                .replace(/<\/del>/g, '')
+                .replace(/<sub>/g,'')
+                .replace(/<\/sub>/g, '')
+                .replace(/<sup>/g,'')
+                .replace(/<\/sup>/g, '')
+                .replace(/<a[\s]+([^>]+)>/g, '')
+                .replace(/<\/a>/g, '')
+                .replace(/<abbr[\s]+([^>]+)>/g, '')
+                .replace(/<\/abbr>/g, '')
+                .replace(/<span[\s]+([^>]+)>/g, '')
+                .replace(/<\/span>/g, '');
             if (!hasHTMLTag) {
                 // Due to support of <,>, ", ' for xml we convert &lt;, &gt;, &quot;, &#034;, &#039; to <, >, ", ", ' respectively so to get the correct
                 // width it is required to convert the same before calculation for the new improve version of the
@@ -477,12 +1015,40 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
                             return '\'';
                     }
                 });
+
+                tmpText = text = tmpText.replace(/<u>/g,'')
+                .replace(/<\/u>/g, '')
+                .replace(/<b>/g,'')
+                .replace(/<\/b>/g, '')
+                .replace(/<strong>/g,'')
+                .replace(/<\/strong>/g, '')
+                .replace(/<em>/g,'')
+                .replace(/<\/em>/g, '')
+                .replace(/<i>/g,'')
+                .replace(/<\/i>/g, '')
+                .replace(/<strike>/g,'')
+                .replace(/<\/strike>/g, '')
+                .replace(/<s>/g,'')
+                .replace(/<\/s>/g, '')
+                .replace(/<del>/g,'')
+                .replace(/<\/del>/g, '')
+                .replace(/<sub>/g,'')
+                .replace(/<\/sub>/g, '')
+                .replace(/<sup>/g,'')
+                .replace(/<\/sup>/g, '')
+                .replace(/<a[\s]+([^>]+)>/g, '')
+                .replace(/<\/a>/g, '')
+                .replace(/<abbr[\s]+([^>]+)>/g, '')
+                .replace(/<\/abbr>/g, '')
+                .replace(/<span[\s]+([^>]+)>/g, '')
+                .replace(/<\/span>/g, '');
+
                 getOriSizeImproveObj = this.getSize(tmpText, true, {
                     hasHTMLTag: hasHTMLTag,
                     hasOnlyBrTag: hasOnlyBrTag,
                     cleanText: true
                 });
-
+                
                 smartLabel.oriTextWidth = oriWidth = getOriSizeImproveObj.width;
                 smartLabel.oriTextHeight = oriHeight = getOriSizeImproveObj.height;
             } else if (hasOnlyBrTag) {
@@ -491,12 +1057,14 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
                 smartLabel.oriTextWidth = oriWidth = dimentionObj.width;
                 smartLabel.oriTextHeight = oriHeight = dimentionObj.height;
             } else {
-                container.innerHTML = text;
+                container.innerHTML = doMergeTextWithTags(originalText, text);
                 smartLabel.oriTextWidth = oriWidth = container.offsetWidth;
                 smartLabel.oriTextHeight = oriHeight = container.offsetHeight;
             }
 
             if (oriHeight <= maxHeight && oriWidth <= maxWidth) {
+                resolvedText = doMergeTextWithTags(originalText, text);
+                smartLabel.text = resolvedText;
                 smartLabel.width = smartLabel.oriTextWidth = oriWidth;
                 smartLabel.height = smartLabel.oriTextHeight = oriHeight;
                 return smartLabel;
@@ -519,6 +1087,7 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
         if (!hasHTMLTag || hasOnlyBrTag) {
             // Gets splitted array
             oriTextArr = slLib._getTextArray(text);
+            //oriTextArr = slLib._getTextArray(tmpText);
             len = oriTextArr.length;
             trimStr = '';
             tempArr = [];
@@ -534,6 +1103,7 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
 
             if (maxWidthWithEll > minWidth && !hasOnlyBrTag) {
                 tempArr = text.substr(0, slLib.getNearestBreakIndex(text, maxWidthWithEll, this)).split('');
+                //tempArr = tmpText.substr(0, slLib.getNearestBreakIndex(tmpText, maxWidthWithEll, this)).split('')
             }
             else if (minWidth > maxWidth) {
                 smartLabel.text = '';
@@ -723,8 +1293,8 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
                 }
 
                 maxStrWidth = max(maxStrWidth, strWidth);
-
-                smartLabel.text = tempArr.join('');
+                resolvedText = doMergeTextWithTags(originalText, tempArr.join(''));
+                smartLabel.text = resolvedText;
                 smartLabel.width = maxStrWidth;
                 smartLabel.height = strHeight;
                 return smartLabel;
@@ -973,6 +1543,32 @@ SmartLabelManager.prototype.getSize = function (text = '', detailedCalculationFl
                     return '\'';
             }
         });
+        text = text.replace(/<u>/g,'')
+                .replace(/<\/u>/g, '')
+                .replace(/<b>/g,'')
+                .replace(/<\/b>/g, '')
+                .replace(/<strong>/g,'')
+                .replace(/<\/strong>/g, '')
+                .replace(/<em>/g,'')
+                .replace(/<\/em>/g, '')
+                .replace(/<i>/g,'')
+                .replace(/<\/i>/g, '')
+                .replace(/<strike>/g,'')
+                .replace(/<\/strike>/g, '')
+                .replace(/<s>/g,'')
+                .replace(/<\/s>/g, '')
+                .replace(/<del>/g,'')
+                .replace(/<\/del>/g, '')
+                .replace(/<sub>/g,'')
+                .replace(/<\/sub>/g, '')
+                .replace(/<sup>/g,'')
+                .replace(/<\/sup>/g, '')
+                .replace(/<a[\s]+([^>]+)>/g, '')
+                .replace(/<\/a>/g, '')
+                .replace(/<abbr[\s]+([^>]+)>/g, '')
+                .replace(/<\/abbr>/g, '')
+                .replace(/<span[\s]+([^>]+)>/g, '')
+                .replace(/<\/span>/g, '');
     }
     this._updateStyle();
     container = this._container;
