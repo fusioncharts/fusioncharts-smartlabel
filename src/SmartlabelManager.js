@@ -1,5 +1,6 @@
 import lib from './lib';
 import ContainerManager from './container-manager';
+import { BLANKSTRING } from '../../../../lib';
 
 var slLib = lib.init(window),
     doc = slLib.win.document,
@@ -414,9 +415,10 @@ function getResolvedTags(text, tagIndices, brTagIndex, charOffset) {
                 }
                 if(i > endPtr) {
                     resultText = spliceSlice(resultText, beforeTagindex, 0, tagIndices[startPtr].endTagName);
+                    //var myIndx = beforeTagindex + tagIndices[startPtr].endTagName.length
                     resultText = spliceSlice(resultText, (beforeTagindex + tagIndices[startPtr].endTagName.length + 6), 0, tagIndices[startPtr].tagName);
                     newBrIndex = newBrIndex + tagIndices[startPtr].endTagName.length;
-                    beforeTagindex = newBrIndex - tagIndices[startPtr].endTagName.length;
+                    beforeTagindex = beforeTagindex + tagIndices[startPtr].endTagName.length;
                     afterTagindex = ((newBrIndex + tagIndices[startPtr].endTagName.length + 6)+tagIndices[startPtr].tagName.length);
                     charOffset += tagIndices[startPtr].endTagName.length;
                     charOffset += tagIndices[startPtr].tagName.length;
@@ -460,6 +462,7 @@ function resolveTags(text) {
         }
         textSnippet = text.substring(startIndex, tagIndex);
         tagIndices = getSortedTagIndices(textSnippet);
+        charOffset = resultObj.charOffset ? resultObj.charOffset : charOffset;
         resultObj = getResolvedTags(text, tagIndices, brTagIndices[i], charOffset);
         if(resultObj.newBrIndex) {
             startIndex = resultObj.newBrIndex + 6;
@@ -508,12 +511,134 @@ function resolveSingleLineText(text, tagIndices) {
     }
     return resultText;
 }
+function mergeTags(_oriText, _tempText) {
+    var oriText = _oriText,
+        tempText = _tempText,
+        resultText = BLANKSTRING,
+        tagIndices,
+        dummyText = BLANKSTRING,
+        i = 0,
+        oriPtr,tempPtr;
+        if(oriText === tempText) {
+            return oriText;
+        } else if(oriText === '' && tempText !== '') {
+            return tempText;
+        } else if(tempText === '' && oriText !== '') {
+            return oriText;
+        }
+        oriPtr = 0;
+        tempPtr = 0;
+        while(oriPtr < oriText.length) {
+            if(oriText[oriPtr] && !tempText[tempPtr]) {
+                resultText += oriText.substring(oriPtr, oriText.length);
+                break;
+            } else if(tempText[tempPtr] && !oriText[oriPtr]){
+                resultText += tempText.substring(tempPtr, tempText.length);
+                break;
+            } else {
+                if(oriText[oriPtr] === tempText[tempPtr]) {
+                    if(oriText[oriPtr] === '<') {
+                        dummyText = oriText[oriPtr];
+                        i = oriPtr + 1;
+                        while(i < oriText.length) {
+                            if(oriText[i] === '>') {
+                                dummyText += oriText[i];
+                                break;
+                            }
+                            dummyText += oriText[i];
+                            i++;
+                        }
+                        if(i >= oriText.length) {
+                            resultText += oriText[oriPtr];
+                            oriPtr++;
+                            tempPtr++;
+                        } else {
+                            tagIndices = getSortedTagIndices(dummyText);
+                            if(tagIndices && tagIndices.length) {
+                                resultText += dummyText;
+                                oriPtr += dummyText.length;
+                            } else {
+                                resultText += dummyText;
+                                oriPtr += dummyText.length;
+                                tempPtr += dummyText.length;
+                            }
+                        }
+                    } else {
+                        resultText += oriText[oriPtr];
+                        oriPtr++;
+                        tempPtr++;
+                    }
+                } else {
+                    if(oriText[oriPtr] === '<') {
+                        dummyText = oriText[oriPtr];
+                        i = oriPtr + 1;
+                        while(i < oriText.length) {
+                            if(oriText[i] === '>') {
+                                dummyText += oriText[i];
+                                break;
+                            }
+                            dummyText += oriText[i];
+                            i++;
+                        }
+                        if(i >= oriText.length) {
+                            resultText += oriText[oriPtr];
+                            oriPtr++;
+                            tempPtr++;
+                        } else {
+                            tagIndices = getSortedTagIndices(dummyText);
+                            if(tagIndices && tagIndices.length) {
+                                resultText += dummyText;
+                                oriPtr += dummyText.length;
+                            } else {
+                                resultText += dummyText;
+                                oriPtr += dummyText.length;
+                                tempPtr += dummyText.length;
+                            }
+                        }
+                    } else if(tempText[tempPtr] === '<') {
+                        dummyText = tempText[tempPtr];
+                        i = tempPtr + 1;
+                        while(i < tempText.length) {
+                            if(tempText[i] === '>') {
+                                dummyText += tempText[i];
+                                break;
+                            }
+                            dummyText += tempText[i];
+                            i++;
+                        }
+                        if(i >= tempText.length) {
+                            resultText += tempText[tempPtr];
+                            oriPtr++;
+                            tempPtr++;
+                        } else {
+                            tagIndices = getSortedTagIndices(dummyText);
+                            if(tagIndices && tagIndices.length) {
+                                resultText += dummyText;
+                                tempPtr += dummyText.length;
+                            } else {
+                                resultText += dummyText;
+                                oriPtr += dummyText.length;
+                                tempPtr += dummyText.length;
+                            }
+                        }
+                    } else if(oriText[oriPtr] === ' ') {
+                        oriPtr++;
+                    } else if(tempText[tempPtr] === ' ') {
+                        tempPtr++;
+                    }
+                }
+            }   
+        }
+        return resultText;
+}
 function doMergeTextWithTags(oriText, tempText) {
     var resultText = oriText,
         tagIndices = getSortedTagIndices(oriText),
         brTagIndices = getSortedBRTagIndices(tempText),
         oribrTagIndices = getSortedBRTagIndices(oriText),
         j,
+        keyIndex,
+        dummyText = tempText,
         i,
         count = 0;
         if(oriText === tempText) {
@@ -529,7 +654,8 @@ function doMergeTextWithTags(oriText, tempText) {
                     }
                     oriText = spliceSlice(oriText, oribrTagIndices[i].index, count+1, '');
                     if(oribrTagIndices[i + 1]) {
-                        oribrTagIndices[i + 1].index -= (count + 1);
+                        keyIndex = i + 1;
+                        oribrTagIndices[i + 1].index -= keyIndex * (count + 1);
                     }
                 //tempOritxt = resolveOriBrTags(oriText, oribrTagIndices[i]);
             }
@@ -537,18 +663,20 @@ function doMergeTextWithTags(oriText, tempText) {
                 for(i = 0;i< brTagIndices.length;i++) {
                     count = 0;
                         j = brTagIndices[i].index;
-                        while(tempText[j]!=='>') {
+                        while(dummyText[j]!=='>') {
                             count++;
                             j++;
                         }
-                        tempText = spliceSlice(tempText, brTagIndices[i].index, count+1, '<br />')
+                        dummyText = spliceSlice(dummyText, brTagIndices[i].index, count+1, '<br />')
                         if(brTagIndices[i + 1]) {
-                            brTagIndices[i + 1].index -= (count + 1);
-                            brTagIndices[i + 1].index += 6;
+                            keyIndex = i + 1;
+                            brTagIndices[i + 1].index -= keyIndex * (count + 1);
+                            brTagIndices[i + 1].index += keyIndex * 6;
                         }
                     //tempOritxt = resolveOriBrTags(oriText, oribrTagIndices[i]);
                 }
             }
+            tempText = dummyText;
             resultText = oriText;
             tagIndices = getSortedTagIndices(oriText);
             brTagIndices = getSortedBRTagIndices(tempText);   
@@ -558,7 +686,9 @@ function doMergeTextWithTags(oriText, tempText) {
         } else if(!brTagIndices.length) {
             return resolveSingleLineText(oriText, tagIndices);  ///Todo sanitise this to include end tags and check for br from user
         } else {
-            resultText = getTagsInBetween(oriText, tempText, brTagIndices, tagIndices, resultText);
+            debugger;
+            //resultText = getTagsInBetween(oriText, tempText, brTagIndices, tagIndices, resultText);
+            resultText = mergeTags(oriText, tempText);
             resultText = resolveTags(resultText);
         }
         return resultText;
@@ -1338,7 +1468,6 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
             len = characterArr.length;
             // if character array is not generated
             minWidth = len && characterArr[0].elem.offsetWidth;
-
             if (minWidth > maxWidth || !len) {
                 smartLabel.text = '';
                 smartLabel.width = smartLabel.oriTextWidth = smartLabel.height = smartLabel.oriTextHeight = 0;
@@ -1464,6 +1593,8 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
 
             //get the smart text
             smartLabel.text = container.innerHTML.replace(slLib.spanRemovalRegx, '$1').replace(/\&amp\;/g, '&');
+
+            smartLabel.text = doMergeTextWithTags(originalText, smartLabel.text);
             if (smartLabel.isTruncated) {
                 smartLabel.text += ellipsesStr;
                 smartLabel.tooltext = toolText;
