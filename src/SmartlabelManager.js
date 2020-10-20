@@ -270,111 +270,6 @@ function getRemTagIndices(tagIndices, latstIndex) {
         }
         return arr;
 
-}  
-function getRecursiveResultText(resultText, oriText, tempText, _tagIndices, brTagIndex, latstIndex) {
-    var remTagIncides,i, brEndTagindex,
-        oricharLength = 0,
-        tagIndices = _tagIndices;    
-    //remText = oriText.substring(latstIndex, oriText.length);
-    tagIndices = getSortedTagIndices(resultText);
-    remTagIncides = getRemTagIndices(tagIndices, latstIndex);
-    brTagIndex = brTagIndex + oricharLength;
-    brEndTagindex = brTagIndex + 6;
-    if(!remTagIncides.length) {
-        resultText = spliceSlice(resultText, brTagIndex, 0, '<br />');
-        return resultText;
-    } else {
-        for(i = 0;i < remTagIncides.length;i++) {
-            if(remTagIncides[i].index <= brTagIndex) {
-                if((remTagIncides[i].index + remTagIncides[i].tagName.length) < brEndTagindex) {
-                    oricharLength += remTagIncides[i].tagName.length;
-                    latstIndex = (remTagIncides[i].index + remTagIncides[i].tagName.length);
-                } else if((remTagIncides[i].index + remTagIncides[i].tagName.length) >= brEndTagindex) {
-                    oricharLength += remTagIncides[i].tagName.length;
-                    latstIndex = (remTagIncides[i].index + remTagIncides[i].tagName.length);
-                }
-            } else if(remTagIncides[i].index > brTagIndex && remTagIncides[i].index < brEndTagindex) {
-                if((remTagIncides[i].index + remTagIncides[i].tagName.length) < brEndTagindex) {
-                    oricharLength += remTagIncides[i].tagName.length;
-                    latstIndex = (remTagIncides[i].index + remTagIncides[i].tagName.length);
-                } else if((remTagIncides[i].index + remTagIncides[i].tagName.length) > brEndTagindex) {
-                    oricharLength += remTagIncides[i].tagName.length;
-                    latstIndex = (remTagIncides[i].index + remTagIncides[i].tagName.length);
-                }
-            }
-        }
-        if(oricharLength > 0) {
-            resultText = getRecursiveResultText(resultText, oriText, tempText, tagIndices, brTagIndex + oricharLength + 1, latstIndex);
-        } else {
-            return (spliceSlice(resultText, brTagIndex, 0, '<br />'))
-        }
-        return resultText;
-    }
-}  
-function getTagsInBetween(oriText, tempText, brTagIndices, _tagIndices, resultText) {
-    var i,latstIndex,newBrIndex,brEndTagindex,j,
-        tagIndices = _tagIndices,
-        oricharLength = 0;
-
-    if(brTagIndices.length === 1) {
-        brEndTagindex = brTagIndices[0].index + 6; 
-        for(i = 0;i < tagIndices.length;i++) {
-            if(tagIndices[i].index <= brTagIndices[0].index) {
-                if((tagIndices[i].index + tagIndices[i].tagName.length) < brEndTagindex) {
-                    oricharLength += tagIndices[i].tagName.length;
-                    latstIndex = (tagIndices[i].index + tagIndices[i].tagName.length);
-                } else if((tagIndices[i].index + tagIndices[i].tagName.length) >= brEndTagindex) {
-                    oricharLength += tagIndices[i].tagName.length;
-                    latstIndex = (tagIndices[i].index + tagIndices[i].tagName.length);
-                }
-            } else if(tagIndices[i].index > brTagIndices[0].index && tagIndices[i].index < brEndTagindex) {
-                if((tagIndices[i].index + tagIndices[i].tagName.length) < brEndTagindex) {
-                    oricharLength += tagIndices[i].tagName.length;
-                    latstIndex = (tagIndices[i].index + tagIndices[i].tagName.length);
-                } else if((tagIndices[i].index + tagIndices[i].tagName.length) > brEndTagindex) {
-                    oricharLength += tagIndices[i].tagName.length;
-                    latstIndex = (tagIndices[i].index + tagIndices[i].tagName.length);
-                }
-            }
-        }
-
-        resultText = getRecursiveResultText(resultText, oriText, tempText, tagIndices, (brTagIndices[0].index + oricharLength), latstIndex);
-        return resultText;
-    } else if(brTagIndices.length > 1) {
-        oricharLength = 0;
-        for(j = 0;j < brTagIndices.length; j++) {
-            tagIndices = getSortedTagIndices(resultText);
-            //newBrIndex = brTagIndices[j].index + oricharLength;
-            oricharLength = 0;
-           // brEndTagindex = newBrIndex + 5; 
-           brEndTagindex = brTagIndices[j].index + 6;
-            for(i = 0; i < tagIndices.length; i++) {
-                if(tagIndices[i].index <= brTagIndices[j].index) {
-                    if((tagIndices[i].index + tagIndices[i].tagName.length) < brEndTagindex) {
-                        oricharLength += tagIndices[i].tagName.length;
-                        latstIndex = (tagIndices[i].index + tagIndices[i].tagName.length);
-                    } else if((tagIndices[i].index + tagIndices[i].tagName.length) >= brEndTagindex) {
-                        oricharLength += tagIndices[i].tagName.length;
-                        latstIndex = (tagIndices[i].index + tagIndices[i].tagName.length);
-                    }
-                } else if(tagIndices[i].index > brTagIndices[j].index && tagIndices[i].index < brEndTagindex) {
-                    if((tagIndices[i].index + tagIndices[i].tagName.length) < brEndTagindex) {
-                        oricharLength += tagIndices[i].tagName.length;
-                        latstIndex = (tagIndices[i].index + tagIndices[i].tagName.length);
-                    } else if((tagIndices[i].index + tagIndices[i].tagName.length) > brEndTagindex) {
-                        oricharLength += tagIndices[i].tagName.length;
-                        latstIndex = (tagIndices[i].index + tagIndices[i].tagName.length);
-                    }
-                }
-            }
-            newBrIndex = brTagIndices[j].index + oricharLength + 1;
-            if(j > 0) {
-                newBrIndex -= (j * 6);
-            }
-            resultText = getRecursiveResultText(resultText, oriText, tempText, tagIndices, newBrIndex, latstIndex);
-        }
-        return resultText;
-    }
 }
 function getResolvedTags(text, tagIndices, brTagIndex, charOffset) {
     var i,startPtr, endPtr,
@@ -686,8 +581,6 @@ function doMergeTextWithTags(oriText, tempText) {
         } else if(!brTagIndices.length) {
             return resolveSingleLineText(oriText, tagIndices);  ///Todo sanitise this to include end tags and check for br from user
         } else {
-            debugger;
-            //resultText = getTagsInBetween(oriText, tempText, brTagIndices, tagIndices, resultText);
             resultText = mergeTags(oriText, tempText);
             resultText = resolveTags(resultText);
         }
