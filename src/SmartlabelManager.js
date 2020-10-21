@@ -1068,7 +1068,7 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
                 smartLabel.oriTextWidth = oriWidth = dimentionObj.width;
                 smartLabel.oriTextHeight = oriHeight = dimentionObj.height;
             } else {
-                container.innerHTML = doMergeTextWithTags(originalText, text);
+                container.innerHTML = text;
                 smartLabel.oriTextWidth = oriWidth = container.offsetWidth;
                 smartLabel.oriTextHeight = oriHeight = container.offsetHeight;
             }
@@ -1475,7 +1475,7 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
             //get the smart text
             smartLabel.text = container.innerHTML.replace(slLib.spanRemovalRegx, '$1').replace(/\&amp\;/g, '&');
 
-            smartLabel.text = doMergeTextWithTags(originalText, smartLabel.text);
+            //smartLabel.text = doMergeTextWithTags(originalText, smartLabel.text);
             if (smartLabel.isTruncated) {
                 smartLabel.text += ellipsesStr;
                 smartLabel.tooltext = toolText;
