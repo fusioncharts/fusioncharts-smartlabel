@@ -1,6 +1,5 @@
 import lib from './lib';
 import ContainerManager from './container-manager';
-import { BLANKSTRING } from '../../../../lib';
 
 var slLib = lib.init(window),
     doc = slLib.win.document,
@@ -398,9 +397,9 @@ function resolveSingleLineText(text, tagIndices) {
 function mergeTags(_oriText, _tempText) {
     var oriText = _oriText,
         tempText = _tempText,
-        resultText = BLANKSTRING,
+        resultText = '',
         tagIndices,
-        dummyText = BLANKSTRING,
+        dummyText = '',
         i = 0,
         oriPtr,tempPtr;
         if(oriText === tempText) {
