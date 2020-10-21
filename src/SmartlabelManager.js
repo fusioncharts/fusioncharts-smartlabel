@@ -260,17 +260,6 @@ function spliceSlice(str, index, count, add) {
   
     return str.slice(0, index) + (add || "") + str.slice(index + count);
   }
-function getRemTagIndices(tagIndices, latstIndex) {
-    var arr = [],
-        i;
-        for(i = 0;i<tagIndices.length; i++) {
-            if(tagIndices[i].index >= latstIndex) {
-                arr.push(tagIndices[i]);
-            }
-        }
-        return arr;
-
-}
 function getResolvedTags(text, tagIndices, brTagIndex, charOffset) {
     var i,startPtr, endPtr,
         resultText = text,
