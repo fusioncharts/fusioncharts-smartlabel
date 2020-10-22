@@ -200,6 +200,7 @@ var lib = {
 				parsedStyle.fontStyle = style.fontStyle || style['font-style'] || 'normal';
 				parsedStyle.fontFamily = style.fontFamily || style['font-family'] || 'Verdana,sans';
 
+				parsedStyle.fontSize += parsedStyle.fontSize.indexOf('px') === -1 ? 'px' : '';
 				return parsedStyle;
 			},
 			/*
