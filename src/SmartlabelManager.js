@@ -855,7 +855,7 @@ SmartLabelManager.prototype.useEllipsesOnOverflow = function (useEllipses) {
  *                      text : SMART TEXT
  *                  }
  */
-SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, noWrap) {
+SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, noWrap, options = {}) {
     if (!this._init) {
         return false;
     }
@@ -935,7 +935,7 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
             isTruncated : false
         };
 
-    hasHTMLTag = slLib.xmlTagRegEx.test(text) || slLib.nbspRegex.test(text);
+    hasHTMLTag = options.hasHTMLTag !== undefined ? options.hasHTMLTag : (slLib.xmlTagRegEx.test(text) || slLib.nbspRegex.test(text));
     hasOnlyBrTag = slLib._hasOnlyBRTag(text);
 
     this.requireDiv = (hasHTMLTag && !hasOnlyBrTag);
