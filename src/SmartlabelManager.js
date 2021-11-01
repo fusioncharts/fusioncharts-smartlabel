@@ -967,51 +967,8 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
 
     if (canvas || container) {
         if (!documentSupport.isBrowserLess) {
-            tmpText = text = text.replace(slLib.ltgtquotRegex, function (match) {
-                switch(match){
-                    case '&lt;':
-                        return '<';
-                    case '&gt;':
-                        return '>';
-                    case '&quot;':
-                        return '"';
-                    case '&#034;':
-                        return '"';
-                    case '&#039;':
-                        return '\'';
-                }
-            });
-            originalText = text;
-            tmpText = text = tmpText.replace(/<u>/g,'')
-                .replace(/<\/u>/g, '')
-                .replace(/<b>/g,'')
-                .replace(/<\/b>/g, '')
-                .replace(/<strong>/g,'')
-                .replace(/<\/strong>/g, '')
-                .replace(/<em>/g,'')
-                .replace(/<\/em>/g, '')
-                .replace(/<i>/g,'')
-                .replace(/<\/i>/g, '')
-                .replace(/<strike>/g,'')
-                .replace(/<\/strike>/g, '')
-                .replace(/<s>/g,'')
-                .replace(/<\/s>/g, '')
-                .replace(/<del>/g,'')
-                .replace(/<\/del>/g, '')
-                .replace(/<sub>/g,'')
-                .replace(/<\/sub>/g, '')
-                .replace(/<sup>/g,'')
-                .replace(/<\/sup>/g, '')
-                .replace(/<a[\s]+([^>]+)>/g, '')
-                .replace(/<\/a>/g, '')
-                .replace(/<abbr[\s]+([^>]+)>/g, '')
-                .replace(/<\/abbr>/g, '')
-                .replace(/<span[\s]+([^>]+)>/g, '')
-                .replace(/<\/span>/g, '');
-            if (!hasHTMLTag) {
-                // Due to support of <,>, ", ' for xml we convert &lt;, &gt;, &quot;, &#034;, &#039; to <, >, ", ", ' respectively so to get the correct
-                // width it is required to convert the same before calculation for the new improve version of the
-                // get text width.
+            
+            if (options.cleanText !== true) {
                 tmpText = text = text.replace(slLib.ltgtquotRegex, function (match) {
                     switch(match){
                         case '&lt;':
@@ -1026,33 +983,87 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
                             return '\'';
                     }
                 });
-
+                originalText = text;
                 tmpText = text = tmpText.replace(/<u>/g,'')
-                .replace(/<\/u>/g, '')
-                .replace(/<b>/g,'')
-                .replace(/<\/b>/g, '')
-                .replace(/<strong>/g,'')
-                .replace(/<\/strong>/g, '')
-                .replace(/<em>/g,'')
-                .replace(/<\/em>/g, '')
-                .replace(/<i>/g,'')
-                .replace(/<\/i>/g, '')
-                .replace(/<strike>/g,'')
-                .replace(/<\/strike>/g, '')
-                .replace(/<s>/g,'')
-                .replace(/<\/s>/g, '')
-                .replace(/<del>/g,'')
-                .replace(/<\/del>/g, '')
-                .replace(/<sub>/g,'')
-                .replace(/<\/sub>/g, '')
-                .replace(/<sup>/g,'')
-                .replace(/<\/sup>/g, '')
-                .replace(/<a[\s]+([^>]+)>/g, '')
-                .replace(/<\/a>/g, '')
-                .replace(/<abbr[\s]+([^>]+)>/g, '')
-                .replace(/<\/abbr>/g, '')
-                .replace(/<span[\s]+([^>]+)>/g, '')
-                .replace(/<\/span>/g, '');
+                    .replace(/<\/u>/g, '')
+                    .replace(/<b>/g,'')
+                    .replace(/<\/b>/g, '')
+                    .replace(/<strong>/g,'')
+                    .replace(/<\/strong>/g, '')
+                    .replace(/<em>/g,'')
+                    .replace(/<\/em>/g, '')
+                    .replace(/<i>/g,'')
+                    .replace(/<\/i>/g, '')
+                    .replace(/<strike>/g,'')
+                    .replace(/<\/strike>/g, '')
+                    .replace(/<s>/g,'')
+                    .replace(/<\/s>/g, '')
+                    .replace(/<del>/g,'')
+                    .replace(/<\/del>/g, '')
+                    .replace(/<sub>/g,'')
+                    .replace(/<\/sub>/g, '')
+                    .replace(/<sup>/g,'')
+                    .replace(/<\/sup>/g, '')
+                    .replace(/<a[\s]+([^>]+)>/g, '')
+                    .replace(/<\/a>/g, '')
+                    .replace(/<abbr[\s]+([^>]+)>/g, '')
+                    .replace(/<\/abbr>/g, '')
+                    .replace(/<span[\s]+([^>]+)>/g, '')
+                    .replace(/<\/span>/g, '');
+            } else {
+                tmpText = text;
+                originalText = text;
+            }
+            
+            if (!hasHTMLTag) {
+                // Due to support of <,>, ", ' for xml we convert &lt;, &gt;, &quot;, &#034;, &#039; to <, >, ", ", ' respectively so to get the correct
+                // width it is required to convert the same before calculation for the new improve version of the
+                // get text width.
+                tmpText = text;
+                if (options.cleanText !== true) {
+                    tmpText = text = text.replace(slLib.ltgtquotRegex, function (match) {
+                        switch(match){
+                            case '&lt;':
+                                return '<';
+                            case '&gt;':
+                                return '>';
+                            case '&quot;':
+                                return '"';
+                            case '&#034;':
+                                return '"';
+                            case '&#039;':
+                                return '\'';
+                        }
+                    });
+    
+                    tmpText = text = tmpText.replace(/<u>/g,'')
+                    .replace(/<\/u>/g, '')
+                    .replace(/<b>/g,'')
+                    .replace(/<\/b>/g, '')
+                    .replace(/<strong>/g,'')
+                    .replace(/<\/strong>/g, '')
+                    .replace(/<em>/g,'')
+                    .replace(/<\/em>/g, '')
+                    .replace(/<i>/g,'')
+                    .replace(/<\/i>/g, '')
+                    .replace(/<strike>/g,'')
+                    .replace(/<\/strike>/g, '')
+                    .replace(/<s>/g,'')
+                    .replace(/<\/s>/g, '')
+                    .replace(/<del>/g,'')
+                    .replace(/<\/del>/g, '')
+                    .replace(/<sub>/g,'')
+                    .replace(/<\/sub>/g, '')
+                    .replace(/<sup>/g,'')
+                    .replace(/<\/sup>/g, '')
+                    .replace(/<a[\s]+([^>]+)>/g, '')
+                    .replace(/<\/a>/g, '')
+                    .replace(/<abbr[\s]+([^>]+)>/g, '')
+                    .replace(/<\/abbr>/g, '')
+                    .replace(/<span[\s]+([^>]+)>/g, '')
+                    .replace(/<\/span>/g, '');
+                }
+                
 
                 getOriSizeImproveObj = this.getSize(tmpText, true, {
                     hasHTMLTag: hasHTMLTag,
