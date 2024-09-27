@@ -1,4 +1,5 @@
 import lib from './lib';
+import trustedPolicy from '../../../../../../fc-features/src/utils/trusted-policy';
 
 var slLib = lib.init(window),
     doc = slLib.win.document,
@@ -102,7 +103,7 @@ ContainerManager.prototype._makeDivNode = function (container) {
     node.setAttribute('role', 'presentation');
     node.style.display = 'inline-block';
 
-    node.innerHTML = slLib.testStrAvg; // A test string.
+    node.innerHTML = trustedPolicy.createHTML(slLib.testStrAvg); // A test string.
     container.lineHeight = node.offsetHeight;
     container.avgCharWidth = (node.offsetWidth / 3);
 
@@ -124,11 +125,11 @@ ContainerManager.prototype._makeDivNode = function (container) {
         node.textContent = '.';
         container.dotWidth = node.getBBox().width - SVG_BBOX_CORRECTION;
     } else {
-        node.innerHTML = '...';
+        node.innerHTML = trustedPolicy.createHTML('...');
         container.ellipsesWidth = node.offsetWidth;
-        node.innerHTML = '.';
+        node.innerHTML = trustedPolicy.createHTML('.');
         container.dotWidth = node.offsetWidth;
-        node.innerHTML = '';
+        node.innerHTML = trustedPolicy.createHTML('');
     }
 };
 ContainerManager.prototype.addContainer = function (keyStr) {

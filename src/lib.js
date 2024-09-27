@@ -1,3 +1,4 @@
+import trustedPolicy from '../../../../../../fc-features/src/utils/trusted-policy';
 var lib = {
 	init: function (win) {
 		var doc = win.document,
@@ -240,7 +241,7 @@ var lib = {
 				if (text instanceof Array) {
 					text = text.join('');
 				}
-				container.innerHTML = text;
+				container.innerHTML = trustedPolicy.createHTML(text);
 				return {
 					width: container.offsetWidth,
 					height: container.offsetHeight

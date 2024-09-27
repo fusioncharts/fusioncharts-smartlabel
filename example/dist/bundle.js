@@ -1,3 +1,5 @@
+import trustedPolicy from '../../../../../../../fc-features/src/utils/trusted-policy';
+
 require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 'use strict';
 
@@ -101,7 +103,7 @@ ContainerManager.prototype._makeDivNode = function (container, keyStr) {
     node.setAttribute('role', 'presentation');
     node.style.display = 'inline-block';
 
-    node.innerHTML = slLib.testStrAvg; // A test string.
+    node.innerHTML = trustedPolicy.createHTML(slLib.testStrAvg); // A test string.
     container.lineHeight = node.offsetHeight;
     container.avgCharWidth = node.offsetWidth / 3;
 
@@ -122,11 +124,11 @@ ContainerManager.prototype._makeDivNode = function (container, keyStr) {
         node.textContent = '.';
         container.dotWidth = node.getBBox().width - SVG_BBOX_CORRECTION;
     } else {
-        node.innerHTML = '...';
+        node.innerHTML = trustedPolicy.createHTML('...');
         container.ellipsesWidth = node.offsetWidth;
-        node.innerHTML = '.';
+        node.innerHTML = trustedPolicy.createHTML('.');
         container.dotWidth = node.offsetWidth;
-        node.innerHTML = '';
+        node.innerHTML = trustedPolicy.createHTML('');
     }
 };
 ContainerManager.prototype.addContainer = function (keyStr) {
@@ -415,7 +417,7 @@ var lib = {
 				if (text instanceof Array) {
 					text = text.join('');
 				}
-				container.innerHTML = text;
+				container.innerHTML = trustedPolicy.createHTML(text);
 				return {
 					width: container.offsetWidth,
 					height: container.offsetHeight
@@ -656,13 +658,13 @@ function SmartLabelManager(container, useEllipses, options) {
     }
 
     wrapper = slLib.createContainer(container);
-    wrapper.innerHTML = slLib.testStrAvg;
+    wrapper.innerHTML = trustedPolicy.createHTML(slLib.testStrAvg);
 
     if (documentSupport.isHeadLess || !documentSupport.isIE && !wrapper.offsetHeight && !wrapper.offsetWidth) {
         isBrowserLess = true;
     }
 
-    wrapper.innerHTML = '';
+    wrapper.innerHTML = trustedPolicy.createHTML('');
     for (prop in slLib.parentContainerStyle) {
         wrapper.style[prop] = slLib.parentContainerStyle[prop];
     }
@@ -1041,7 +1043,7 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
                 smartLabel.oriTextWidth = oriWidth = dimentionObj.width;
                 smartLabel.oriTextHeight = oriHeight = dimentionObj.height;
             } else {
-                container.innerHTML = text;
+                container.innerHTML = trustedPolicy.createHTML(text);
                 smartLabel.oriTextWidth = oriWidth = container.offsetWidth;
                 smartLabel.oriTextHeight = oriHeight = container.offsetHeight;
             }
@@ -1246,7 +1248,7 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
             text = text.replace(slLib.spanAdditionRegx, slLib.spanAdditionReplacer);
             text = text.replace(/(<br\s*\/*\>)/g, '<span class="' + [slLib.classNameWithTag, ' ', slLib.classNameWithTagBR].join('') + '">$1</span>');
 
-            container.innerHTML = text;
+            container.innerHTML = trustedPolicy.createHTML(text);
 
             spanArr = container[documentSupport.childRetriverFn](documentSupport.childRetriverString);
 
@@ -1332,14 +1334,14 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
                             lastSpace = characterArr[i].spaceIdx;
                             lastDash = characterArr[i].dashIdx;
                             if (lastSpace > lastIndexBroken) {
-                                characterArr[lastSpace].elem.innerHTML = '<br/>';
+                                characterArr[lastSpace].elem.innerHTML = trustedPolicy.createHTML('<br/>');
                                 lastIndexBroken = lastSpace;
                             } else if (lastDash > lastIndexBroken) {
                                 if (lastDash === i) {
                                     // in case the overflowing character itself is the '-'
-                                    characterArr[lastDash].elem.innerHTML = '<br/>-';
+                                    characterArr[lastDash].elem.innerHTML = trustedPolicy.createHTML('<br/>-');
                                 } else {
-                                    characterArr[lastDash].elem.innerHTML = '-<br/>';
+                                    characterArr[lastDash].elem.innerHTML = trustedPolicy.createHTML('-<br/>');
                                 }
                                 lastIndexBroken = lastDash;
                             } else {
@@ -1352,9 +1354,9 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
                                 if (lastBR) {
                                     lastBR.parentNode.removeChild(lastBR);
                                 } else if (lastIndexBroken === lastDash) {
-                                    characterArr[lastDash].elem.innerHTML = '-';
+                                    characterArr[lastDash].elem.innerHTML = trustedPolicy.createHTML('-');
                                 } else {
-                                    characterArr[lastSpace].elem.innerHTML = ' ';
+                                    characterArr[lastSpace].elem.innerHTML = trustedPolicy.createHTML(' ');
                                 }
                                 removeFromIndex = i;
                                 //break the looping condition
@@ -1474,7 +1476,7 @@ SmartLabelManager.prototype.getOriSize = function () {
 
     // text contains html tags other than br
     if (hasHTMLTag) {
-        container.innerHTML = text;
+        container.innerHTML = trustedPolicy.createHTML(text);
         return {
             width: container.offsetWidth,
             height: container.offsetHeight
