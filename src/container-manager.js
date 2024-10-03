@@ -96,7 +96,7 @@ ContainerManager.prototype._makeDivNode = function (container) {
         node.style.setAttribute('cssText', keyStr);
     }
     else {
-        node.setAttribute('style', keyStr);
+        node.style = keyStr;
     }
 
     node.setAttribute('aria-hidden', 'true');
@@ -113,7 +113,7 @@ ContainerManager.prototype._makeDivNode = function (container) {
             this.svgRoot.appendChild(node);
         }
         node = container.svgText;
-        node.setAttribute('style', keyStr);
+        node.style = keyStr;
         
 
         node.textContent = slLib.testStrAvg; // A test string.
