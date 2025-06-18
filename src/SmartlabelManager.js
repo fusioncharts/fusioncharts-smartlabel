@@ -1,5 +1,5 @@
-import lib from './lib';
 import ContainerManager from './container-manager';
+import lib from './lib';
 import trustedPolicy from '@fusioncharts/utils/src/trusted-policy';
 
 var slLib = lib.init(window),
@@ -1009,6 +1009,13 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
                 .replace(/<\/abbr>/g, '')
                 .replace(/<span[\s]+([^>]+)>/g, '')
                 .replace(/<\/span>/g, '');
+
+                hasHTMLTag = slLib.xmlTagRegEx.test(text) || slLib.nbspRegex.test(text);
+                hasOnlyBrTag = slLib._hasOnlyBRTag(text);
+                this.requireDiv = (hasHTMLTag && ! hasOnlyBrTag);
+                this._updateStyle();
+                container = this._container;
+                
             if (!hasHTMLTag) {
                 // Due to support of <,>, ", ' for xml we convert &lt;, &gt;, &quot;, &#034;, &#039; to <, >, ", ", ' respectively so to get the correct
                 // width it is required to convert the same before calculation for the new improve version of the
