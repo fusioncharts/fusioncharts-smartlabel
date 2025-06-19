@@ -576,6 +576,14 @@ function doMergeTextWithTags(oriText, tempText) {
         return resultText;
     
 }
+
+function isHTMLAndBrTags(text){
+    let hasHTMLTag = slLib.xmlTagRegEx.test(text) || slLib.nbspRegex.test(text);
+    let hasOnlyBrTag = slLib._hasOnlyBRTag(text);
+
+    return [hasHTMLTag, hasOnlyBrTag];
+}
+
 /*
  * getSmartText returns the text separated by <br/> whenever a break is necessary. This is to recgonize one
  * generalized format independent of the implementation (canvas based solution, svg based solution). This method
@@ -936,9 +944,9 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
             isTruncated : false
         };
 
-    hasHTMLTag = slLib.xmlTagRegEx.test(text) || slLib.nbspRegex.test(text);
-    hasOnlyBrTag = slLib._hasOnlyBRTag(text);
+    [hasHTMLTag,hasOnlyBrTag] = isHTMLAndBrTags(text);
 
+    
     this.requireDiv = (hasHTMLTag && !hasOnlyBrTag);
     this._updateStyle();
 
@@ -1010,11 +1018,10 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
                 .replace(/<span[\s]+([^>]+)>/g, '')
                 .replace(/<\/span>/g, '');
 
-                hasHTMLTag = slLib.xmlTagRegEx.test(text) || slLib.nbspRegex.test(text);
-                hasOnlyBrTag = slLib._hasOnlyBRTag(text);
-                this.requireDiv = (hasHTMLTag && ! hasOnlyBrTag);
-                this._updateStyle();
-                container = this._container;
+            [hasHTMLTag,hasOnlyBrTag] = isHTMLAndBrTags(text);
+            this.requireDiv = (hasHTMLTag && !hasOnlyBrTag);
+            this._updateStyle();
+            container = this._container;
                 
             if (!hasHTMLTag) {
                 // Due to support of <,>, ", ' for xml we convert &lt;, &gt;, &quot;, &#034;, &#039; to <, >, ", ", ' respectively so to get the correct
