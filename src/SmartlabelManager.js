@@ -576,6 +576,13 @@ function doMergeTextWithTags(oriText, tempText) {
         return resultText;
     
 }
+
+function isHTMLAndBrTags(text) {
+    let hasHTMLTag = slLib.xmlTagRegEx.test(text) || slLib.nbspRegex.test(text);
+    let hasOnlyBrTag = slLib._hasOnlyBRTag(text);
+    return [hasHTMLTag, hasOnlyBrTag];
+}
+
 /*
  * getSmartText returns the text separated by <br/> whenever a break is necessary. This is to recgonize one
  * generalized format independent of the implementation (canvas based solution, svg based solution). This method
@@ -936,9 +943,9 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
             isTruncated : false
         };
 
-    hasHTMLTag = slLib.xmlTagRegEx.test(text) || slLib.nbspRegex.test(text);
-    hasOnlyBrTag = slLib._hasOnlyBRTag(text);
+    [hasHTMLTag, hasOnlyBrTag] = isHTMLAndBrTags(text);
 
+    
     this.requireDiv = (hasHTMLTag && !hasOnlyBrTag);
     this._updateStyle();
 
@@ -1009,6 +1016,12 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
                 .replace(/<\/abbr>/g, '')
                 .replace(/<span[\s]+([^>]+)>/g, '')
                 .replace(/<\/span>/g, '');
+
+            [hasHTMLTag, hasOnlyBrTag] = isHTMLAndBrTags(text);
+            this.requireDiv = (hasHTMLTag && !hasOnlyBrTag);
+            this._updateStyle();
+            container = this._container;
+                
             if (!hasHTMLTag) {
                 // Due to support of <,>, ", ' for xml we convert &lt;, &gt;, &quot;, &#034;, &#039; to <, >, ", ", ' respectively so to get the correct
                 // width it is required to convert the same before calculation for the new improve version of the
@@ -1529,13 +1542,14 @@ SmartLabelManager.prototype.getSize = function (text = '', detailedCalculationFl
         container,
         indiSizeStore = { },
         hasHTMLTag = config.hasHTMLTag,
-        hasOnlyBrTag = config.hasOnlyBrTag;
+        hasOnlyBrTag = config.hasOnlyBrTag,
+        [detectedHTMLTag, detectedOnlyBrTag] = isHTMLAndBrTags(text);;
 
     if (typeof hasHTMLTag === 'undefined') {
-        hasHTMLTag = slLib.xmlTagRegEx.test(text) || slLib.nbspRegex.test(text);
+        hasHTMLTag = detectedHTMLTag;
     }
     if (typeof hasOnlyBrTag === 'undefined') {
-        hasOnlyBrTag = slLib._hasOnlyBRTag(text);
+        hasOnlyBrTag = detectedOnlyBrTag;
     }
 
     this.requireDiv = (hasHTMLTag && !hasOnlyBrTag);
