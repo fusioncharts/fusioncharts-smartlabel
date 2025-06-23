@@ -1,5 +1,5 @@
-import ContainerManager from './container-manager';
 import lib from './lib';
+import ContainerManager from './container-manager';
 import trustedPolicy from '@fusioncharts/utils/src/trusted-policy';
 
 var slLib = lib.init(window),
