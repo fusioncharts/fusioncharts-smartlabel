@@ -577,10 +577,9 @@ function doMergeTextWithTags(oriText, tempText) {
     
 }
 
-function isHTMLAndBrTags(text){
+function isHTMLAndBrTags(text) {
     let hasHTMLTag = slLib.xmlTagRegEx.test(text) || slLib.nbspRegex.test(text);
     let hasOnlyBrTag = slLib._hasOnlyBRTag(text);
-
     return [hasHTMLTag, hasOnlyBrTag];
 }
 
@@ -944,7 +943,7 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
             isTruncated : false
         };
 
-    [hasHTMLTag,hasOnlyBrTag] = isHTMLAndBrTags(text);
+    [hasHTMLTag, hasOnlyBrTag] = isHTMLAndBrTags(text);
 
     
     this.requireDiv = (hasHTMLTag && !hasOnlyBrTag);
@@ -1018,7 +1017,7 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
                 .replace(/<span[\s]+([^>]+)>/g, '')
                 .replace(/<\/span>/g, '');
 
-            [hasHTMLTag,hasOnlyBrTag] = isHTMLAndBrTags(text);
+            [hasHTMLTag, hasOnlyBrTag] = isHTMLAndBrTags(text);
             this.requireDiv = (hasHTMLTag && !hasOnlyBrTag);
             this._updateStyle();
             container = this._container;
@@ -1543,13 +1542,14 @@ SmartLabelManager.prototype.getSize = function (text = '', detailedCalculationFl
         container,
         indiSizeStore = { },
         hasHTMLTag = config.hasHTMLTag,
-        hasOnlyBrTag = config.hasOnlyBrTag;
+        hasOnlyBrTag = config.hasOnlyBrTag,
+        [detectedHTMLTag, detectedOnlyBrTag] = isHTMLAndBrTags(text);;
 
     if (typeof hasHTMLTag === 'undefined') {
-        hasHTMLTag = slLib.xmlTagRegEx.test(text) || slLib.nbspRegex.test(text);
+        hasHTMLTag = detectedHTMLTag;
     }
     if (typeof hasOnlyBrTag === 'undefined') {
-        hasOnlyBrTag = slLib._hasOnlyBRTag(text);
+        hasOnlyBrTag = detectedOnlyBrTag;
     }
 
     this.requireDiv = (hasHTMLTag && !hasOnlyBrTag);
