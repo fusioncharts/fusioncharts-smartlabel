@@ -1016,11 +1016,6 @@ SmartLabelManager.prototype.getSmartText = function (text, maxWidth, maxHeight, 
                 .replace(/<\/abbr>/g, '')
                 .replace(/<span[\s]+([^>]+)>/g, '')
                 .replace(/<\/span>/g, '');
-
-            [hasHTMLTag, hasOnlyBrTag] = isHTMLAndBrTags(text);
-            this.requireDiv = (hasHTMLTag && !hasOnlyBrTag);
-            this._updateStyle();
-            container = this._container;
                 
             if (!hasHTMLTag) {
                 // Due to support of <,>, ", ' for xml we convert &lt;, &gt;, &quot;, &#034;, &#039; to <, >, ", ", ' respectively so to get the correct
